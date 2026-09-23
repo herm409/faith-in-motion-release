@@ -1058,19 +1058,10 @@ body.has-sticky-buy { padding-bottom: 4.5rem; }
 }
 
 @media (max-width: 860px) {
+  /* Decorative only — hide on small screens so it never collides with
+     “Sit with one question” / hero CTA cluster at the bottom of the copy. */
   .spine-watermark {
-    right: auto;
-    left: 50%;
-    top: auto;
-    bottom: 1.25rem;
-    transform: translateX(-50%) rotate(0deg);
-    font-size: 0.95rem;
-    opacity: 0.1;
-    letter-spacing: 0.06em;
-    white-space: normal;
-    text-align: center;
-    max-width: 90%;
-    line-height: 1.35;
+    display: none;
   }
 }
 
@@ -1297,7 +1288,12 @@ body.has-sticky-buy { padding-bottom: 4.5rem; }
 }
 .map-opening .map-list li,
 .map-close .map-list li {
-  grid-template-columns: 5.25rem minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: 0.85rem;
+}
+.map-opening .map-list li .map-label,
+.map-close .map-list li .map-label {
+  white-space: nowrap;
 }
 /* Atomic teach-list: chapters 5+5 (column-major) */
 .map-list-split {
@@ -1336,9 +1332,18 @@ body.has-sticky-buy { padding-bottom: 4.5rem; }
     gap: 0.4rem 0.65rem;
     padding: 0.55rem 0;
   }
+  /* Stack label above title: “INTRODUCTION” is wider than 4.5rem when
+     uppercase + tracked, and was colliding into “The Great Christian Standstill”. */
   .map-opening .map-list li,
   .map-close .map-list li {
-    grid-template-columns: 4.5rem 1fr;
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
+  .map-opening .map-list li .map-label,
+  .map-close .map-list li .map-label,
+  .map-opening .map-list li .map-title,
+  .map-close .map-list li .map-title {
+    grid-column: 1;
   }
 }
 
@@ -1439,6 +1444,8 @@ body.has-sticky-buy { padding-bottom: 4.5rem; }
 }
 .hero .soft-link-wrap {
   margin-top: 0.85rem;
+  position: relative;
+  z-index: 2;
 }
 .hero-thesis {
   margin-top: 1.15rem;
