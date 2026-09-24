@@ -125,10 +125,22 @@
   function focusNotifyEmail() {
     var email = document.getElementById("notify-email");
     var section = document.getElementById("notify");
+    var unlockNote = document.getElementById("sample-unlock-note");
+    var unlockHint = document.querySelector(".form-unlock-hint");
     if (section) {
       section.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
     }
+    function flashUnlock() {
+      [unlockNote, unlockHint].forEach(function (el) {
+        if (!el) return;
+        el.classList.add("is-emphasized");
+        window.setTimeout(function () {
+          el.classList.remove("is-emphasized");
+        }, 2400);
+      });
+    }
     window.setTimeout(function () {
+      flashUnlock();
       if (email) {
         email.focus({ preventScroll: true });
       }

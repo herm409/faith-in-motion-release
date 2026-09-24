@@ -1720,3 +1720,24 @@ body.has-sticky-buy { padding-bottom: 4.5rem; }
     text-align: center;
   }
 }
+
+
+/* Sample unlock clarity (email gate) */
+.form-unlock-hint {
+  margin: 0 0 0.85rem;
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  line-height: 1.45;
+  color: var(--navy);
+  opacity: 0.85;
+}
+.buy-invite.is-emphasized,
+.form-unlock-hint.is-emphasized {
+  color: var(--navy);
+  opacity: 1;
+  outline: 2px solid color-mix(in srgb, var(--amber) 55%, transparent);
+  outline-offset: 6px;
+  border-radius: 3px;
+  transition: outline-color 0.35s var(--ease), opacity 0.35s var(--ease);
+}
