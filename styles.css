@@ -721,6 +721,19 @@ body.has-sticky-buy { padding-bottom: 4.5rem; }
   opacity: 0.62;
 }
 
+/* Hero sample PDF — quiet secondary next to primary CTA */
+.hero-cta .hero-sample-link {
+  font-size: 0.98rem;
+  opacity: 0.72;
+  white-space: nowrap;
+}
+@media (max-width: 520px) {
+  .hero-cta .hero-sample-link {
+    white-space: normal;
+    flex-basis: 100%;
+  }
+}
+
 /* ——— Soft text link ——— */
 .soft-link-wrap {
   margin: 1.35rem 0 0;
