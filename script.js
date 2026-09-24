@@ -123,7 +123,7 @@
   }
 
   // Share — copy link with fallback
-  var SHARE_URL = "https://faithinmotionbook.com/";
+  var SHARE_URL = "https://faithinmotionbook.com";
 
   function copyShareLink(btn) {
     var bar = btn.closest(".share-bar");

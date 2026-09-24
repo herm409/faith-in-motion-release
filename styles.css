@@ -134,6 +134,17 @@ a { color: inherit; }
   border-color: #0c1730;
 }
 .btn-primary:active { transform: translateY(1px); }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--navy);
+  border-color: color-mix(in srgb, var(--navy) 55%, transparent);
+}
+.btn-secondary:hover {
+  background: color-mix(in srgb, var(--navy) 6%, transparent);
+  border-color: var(--navy);
+}
+.btn-secondary:active { transform: translateY(1px); }
 .btn-sm { padding: 0.55rem 1.1rem; font-size: 0.75rem; }
 .btn-lg { padding: 1rem 1.85rem; font-size: 0.875rem; }
 
@@ -1632,4 +1643,35 @@ body.has-sticky-buy { padding-bottom: 4.5rem; }
   body.has-sticky-buy {
     padding-bottom: 4.75rem;
   }
+}
+
+
+.sit-sample {
+  margin: 1.35rem 0 0;
+}
+.share-btn .share-icon {
+  flex-shrink: 0;
+}
+.share-btn {
+  gap: 0.35rem;
+}
+.share-bar-on-navy {
+  margin-top: 1.75rem;
+}
+.share-bar-on-navy .share-label {
+  color: var(--soft);
+  opacity: 0.55;
+}
+.share-bar-on-navy .share-btn {
+  color: color-mix(in srgb, var(--soft) 88%, transparent);
+  border-color: color-mix(in srgb, var(--soft) 28%, transparent);
+  background: transparent;
+}
+.share-bar-on-navy .share-btn:hover {
+  background: color-mix(in srgb, var(--soft) 8%, transparent);
+  border-color: color-mix(in srgb, var(--soft) 48%, transparent);
+  color: var(--soft);
+}
+.share-bar-on-navy .share-copied {
+  color: color-mix(in srgb, var(--soft) 80%, transparent);
 }
