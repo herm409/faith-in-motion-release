@@ -159,48 +159,118 @@
     });
   });
 
-  // Share — copy link with fallback
-  var SHARE_URL = "https://faithinmotionbook.com";
+  // Share — prewritten post text for Facebook / X / LinkedIn
+  var SHARE_URL = "https://faithinmotionbook.com/";
+  var SHARE_TEXT =
+    "I'm walking with Herman Davis to the October 12 launch of Faith in Motion. " +
+    "'Grace does not cancel purpose. Grace launches it.' " +
+    "Walk with me: https://faithinmotionbook.com";
 
-  function copyShareLink(btn) {
-    var bar = btn.closest(".share-bar");
-    var feedback = bar ? bar.querySelector("[data-share-copied]") : null;
-
-    function showCopied() {
-      if (!feedback) return;
-      feedback.hidden = false;
-      window.setTimeout(function () {
-        feedback.hidden = true;
-      }, 2000);
-    }
-
-    function fallbackCopy() {
-      var ta = document.createElement("textarea");
-      ta.value = SHARE_URL;
-      ta.setAttribute("readonly", "");
-      ta.style.position = "absolute";
-      ta.style.left = "-9999px";
-      document.body.appendChild(ta);
-      ta.select();
-      try {
-        document.execCommand("copy");
-        showCopied();
-      } catch (err) {
-        /* ignore */
-      }
-      document.body.removeChild(ta);
-    }
-
-    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
-      navigator.clipboard.writeText(SHARE_URL).then(showCopied).catch(fallbackCopy);
-    } else {
-      fallbackCopy();
-    }
+  function shareFeedback(bar, message) {
+    if (!bar) return;
+    var feedback = bar.querySelector("[data-share-copied]");
+    if (!feedback) return;
+    var prev = feedback.textContent;
+    feedback.textContent = message;
+    feedback.hidden = false;
+    window.setTimeout(function () {
+      feedback.hidden = true;
+      feedback.textContent = prev;
+    }, 3200);
   }
+
+  function copyText(value) {
+    return new Promise(function (resolve) {
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+        navigator.clipboard.writeText(value).then(function () {
+          resolve(true);
+        }).catch(function () {
+          resolve(fallbackCopy(value));
+        });
+      } else {
+        resolve(fallbackCopy(value));
+      }
+    });
+  }
+
+  function fallbackCopy(value) {
+    var ta = document.createElement("textarea");
+    ta.value = value;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "absolute";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try {
+      ok = document.execCommand("copy");
+    } catch (err) {
+      ok = false;
+    }
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  function openShareWindow(url) {
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  function facebookShareUrl() {
+    return (
+      "https://www.facebook.com/sharer/sharer.php?u=" +
+      encodeURIComponent(SHARE_URL) +
+      "&quote=" +
+      encodeURIComponent(SHARE_TEXT)
+    );
+  }
+
+  function xShareUrl() {
+    return "https://twitter.com/intent/tweet?text=" + encodeURIComponent(SHARE_TEXT);
+  }
+
+  function linkedInShareUrl() {
+    // Opens LinkedIn composer with prefilled text (works better than share-offsite for captions)
+    return (
+      "https://www.linkedin.com/feed/?shareActive=true&text=" +
+      encodeURIComponent(SHARE_TEXT)
+    );
+  }
+
+  document.querySelectorAll("[data-share]").forEach(function (el) {
+    el.addEventListener("click", function (e) {
+      var kind = el.getAttribute("data-share");
+      var bar = el.closest(".share-bar");
+      e.preventDefault();
+
+      if (kind === "facebook") {
+        // Facebook often drops quote=; copy caption so they can paste into the post
+        copyText(SHARE_TEXT).then(function () {
+          shareFeedback(bar, "Post text copied — paste into Facebook");
+          openShareWindow(facebookShareUrl());
+        });
+        return;
+      }
+      if (kind === "x") {
+        openShareWindow(xShareUrl());
+        return;
+      }
+      if (kind === "linkedin") {
+        copyText(SHARE_TEXT).then(function () {
+          shareFeedback(bar, "Post text copied — paste if needed");
+          openShareWindow(linkedInShareUrl());
+        });
+        return;
+      }
+    });
+  });
 
   document.querySelectorAll("[data-share-copy]").forEach(function (btn) {
     btn.addEventListener("click", function () {
-      copyShareLink(btn);
+      var bar = btn.closest(".share-bar");
+      // Copy full ad caption (link included), not bare URL only
+      copyText(SHARE_TEXT).then(function (ok) {
+        if (ok) shareFeedback(bar, "Post text copied");
+      });
     });
   });
 
