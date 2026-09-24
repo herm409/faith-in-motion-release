@@ -121,4 +121,50 @@
       }
     });
   }
+
+  // Share — copy link with fallback
+  var SHARE_URL = "https://faithinmotionbook.com/";
+
+  function copyShareLink(btn) {
+    var bar = btn.closest(".share-bar");
+    var feedback = bar ? bar.querySelector("[data-share-copied]") : null;
+
+    function showCopied() {
+      if (!feedback) return;
+      feedback.hidden = false;
+      window.setTimeout(function () {
+        feedback.hidden = true;
+      }, 2000);
+    }
+
+    function fallbackCopy() {
+      var ta = document.createElement("textarea");
+      ta.value = SHARE_URL;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "absolute";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+        showCopied();
+      } catch (err) {
+        /* ignore */
+      }
+      document.body.removeChild(ta);
+    }
+
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+      navigator.clipboard.writeText(SHARE_URL).then(showCopied).catch(fallbackCopy);
+    } else {
+      fallbackCopy();
+    }
+  }
+
+  document.querySelectorAll("[data-share-copy]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      copyShareLink(btn);
+    });
+  });
+
 })();

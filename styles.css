@@ -561,6 +561,106 @@ a { color: inherit; }
   letter-spacing: 0.02em;
 }
 
+
+/* ——— Share bar (quiet cluster) ——— */
+.share-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 0.85rem;
+  margin-top: 1.35rem;
+}
+.share-label {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 560;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--navy);
+  opacity: 0.55;
+}
+.share-btns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.5rem;
+}
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  color: var(--navy);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--navy) 28%, transparent);
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s var(--ease), border-color 0.2s var(--ease), color 0.2s var(--ease);
+}
+.share-btn:hover {
+  background: color-mix(in srgb, var(--navy) 6%, transparent);
+  border-color: color-mix(in srgb, var(--navy) 48%, transparent);
+}
+.share-btn:active {
+  transform: translateY(1px);
+}
+.share-copied {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-style: italic;
+  color: var(--navy);
+  opacity: 0.75;
+}
+.share-copied[hidden] { display: none; }
+
+/* Footer share — cream on navy */
+.share-bar-footer {
+  margin-top: 0;
+  flex: 1 1 auto;
+  justify-content: center;
+}
+.share-bar-footer .share-label {
+  color: var(--soft);
+  opacity: 0.55;
+}
+.share-bar-footer .share-btn {
+  color: color-mix(in srgb, var(--soft) 88%, transparent);
+  border-color: color-mix(in srgb, var(--soft) 28%, transparent);
+  background: transparent;
+}
+.share-bar-footer .share-btn:hover {
+  background: color-mix(in srgb, var(--soft) 8%, transparent);
+  border-color: color-mix(in srgb, var(--soft) 48%, transparent);
+  color: var(--soft);
+}
+.share-bar-footer .share-copied {
+  color: color-mix(in srgb, var(--soft) 80%, transparent);
+}
+
+@media (max-width: 720px) {
+  .share-bar-footer {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+    margin-top: 0.35rem;
+  }
+  .footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .footer-meta {
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
 /* ——— Sticky buy ——— */
 .sticky-buy {
   position: fixed;
