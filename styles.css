@@ -1745,3 +1745,119 @@ body.has-sticky-buy { padding-bottom: 4.5rem; }
   border-radius: 3px;
   transition: outline-color 0.35s var(--ease), opacity 0.35s var(--ease);
 }
+
+
+/* ——— Facebook paste coach (share) ——— */
+.share-paste-coach {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: color-mix(in srgb, var(--navy) 55%, transparent);
+  backdrop-filter: blur(2px);
+}
+.share-paste-card {
+  width: min(34rem, 100%);
+  background: var(--cream, #f7f1e6);
+  color: var(--navy);
+  border-radius: 1rem;
+  padding: 1.35rem 1.4rem 1.25rem;
+  box-shadow: 0 18px 50px color-mix(in srgb, var(--navy) 28%, transparent);
+  border: 1px solid color-mix(in srgb, var(--navy) 12%, transparent);
+}
+.share-paste-kicker {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+.share-paste-title {
+  margin: 0 0 0.55rem;
+  font-family: var(--font-display, var(--font-body));
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.share-paste-lead {
+  margin: 0 0 0.9rem;
+  font-family: var(--font-body);
+  font-size: 0.98rem;
+  line-height: 1.45;
+  opacity: 0.88;
+}
+.share-paste-lead kbd {
+  font-family: var(--font-ui);
+  font-size: 0.78em;
+  font-weight: 600;
+  padding: 0.08em 0.35em;
+  border-radius: 0.3em;
+  border: 1px solid color-mix(in srgb, var(--navy) 22%, transparent);
+  background: color-mix(in srgb, var(--navy) 5%, transparent);
+}
+.share-paste-preview {
+  margin: 0 0 1.1rem;
+  padding: 0.85rem 0.95rem;
+  max-height: 9.5rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  background: color-mix(in srgb, var(--navy) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--navy) 12%, transparent);
+  border-radius: 0.65rem;
+}
+.share-paste-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.55rem;
+  align-items: center;
+}
+.share-paste-primary,
+.share-paste-secondary,
+.share-paste-ghost {
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 560;
+  letter-spacing: 0.02em;
+  border-radius: 999px;
+  padding: 0.55rem 1.05rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.share-paste-primary {
+  background: var(--navy);
+  color: var(--cream, #f7f1e6);
+  border-color: var(--navy);
+}
+.share-paste-primary:hover {
+  filter: brightness(1.08);
+}
+.share-paste-secondary {
+  background: transparent;
+  color: var(--navy);
+  border-color: color-mix(in srgb, var(--navy) 28%, transparent);
+}
+.share-paste-secondary:hover {
+  background: color-mix(in srgb, var(--navy) 6%, transparent);
+}
+.share-paste-ghost {
+  background: transparent;
+  color: color-mix(in srgb, var(--navy) 70%, transparent);
+  border-color: transparent;
+  margin-left: auto;
+}
+.share-paste-ghost:hover {
+  color: var(--navy);
+}
+@media (max-width: 520px) {
+  .share-paste-ghost {
+    margin-left: 0;
+  }
+}

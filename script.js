@@ -236,6 +236,72 @@
     );
   }
 
+
+  function openFacebookPasteCoach() {
+    var existing = document.getElementById("share-paste-coach");
+    if (existing) existing.remove();
+
+    var overlay = document.createElement("div");
+    overlay.id = "share-paste-coach";
+    overlay.className = "share-paste-coach";
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+    overlay.setAttribute("aria-labelledby", "share-paste-title");
+
+    overlay.innerHTML =
+      '<div class="share-paste-card">' +
+        '<p class="share-paste-kicker">Almost there</p>' +
+        '<h2 id="share-paste-title" class="share-paste-title">Paste this into your Facebook post</h2>' +
+        '<p class="share-paste-lead">The text below is already copied. After Facebook opens, click the post box and paste (<kbd>Ctrl</kbd>+<kbd>V</kbd> or <kbd>⌘</kbd>+<kbd>V</kbd>).</p>' +
+        '<pre class="share-paste-preview" tabindex="0"></pre>' +
+        '<div class="share-paste-actions">' +
+          '<button type="button" class="share-paste-primary" data-share-open-fb>Open Facebook</button>' +
+          '<button type="button" class="share-paste-secondary" data-share-recopy>Copy text again</button>' +
+          '<button type="button" class="share-paste-ghost" data-share-cancel>Cancel</button>' +
+        '</div>' +
+      '</div>';
+
+    var preview = overlay.querySelector(".share-paste-preview");
+    preview.textContent = SHARE_TEXT;
+
+    function close() {
+      document.removeEventListener("keydown", onKey);
+      overlay.remove();
+    }
+
+    function onKey(e) {
+      if (e.key === "Escape") close();
+    }
+
+    overlay.addEventListener("click", function (e) {
+      if (e.target === overlay) close();
+    });
+
+    overlay.querySelector("[data-share-cancel]").addEventListener("click", close);
+    overlay.querySelector("[data-share-recopy]").addEventListener("click", function () {
+      copyText(SHARE_TEXT).then(function (ok) {
+        var btn = overlay.querySelector("[data-share-recopy]");
+        if (!btn) return;
+        var prev = btn.textContent;
+        btn.textContent = ok ? "Copied" : "Copy failed";
+        window.setTimeout(function () {
+          btn.textContent = prev;
+        }, 1600);
+      });
+    });
+    overlay.querySelector("[data-share-open-fb]").addEventListener("click", function () {
+      copyText(SHARE_TEXT).then(function () {
+        openShareWindow(facebookShareUrl());
+        close();
+      });
+    });
+
+    document.body.appendChild(overlay);
+    document.addEventListener("keydown", onKey);
+    overlay.querySelector("[data-share-open-fb]").focus();
+  }
+
+
   document.querySelectorAll("[data-share]").forEach(function (el) {
     el.addEventListener("click", function (e) {
       var kind = el.getAttribute("data-share");
@@ -243,10 +309,10 @@
       e.preventDefault();
 
       if (kind === "facebook") {
-        // Facebook often drops quote=; copy caption so they can paste into the post
+        // Facebook often drops quote=; coach paste, then open on confirm
         copyText(SHARE_TEXT).then(function () {
-          shareFeedback(bar, "Post text copied — paste into Facebook");
-          openShareWindow(facebookShareUrl());
+          shareFeedback(bar, "Post text copied");
+          openFacebookPasteCoach();
         });
         return;
       }
