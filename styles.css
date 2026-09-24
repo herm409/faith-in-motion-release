@@ -1675,3 +1675,48 @@ body.has-sticky-buy { padding-bottom: 4.5rem; }
 .share-bar-on-navy .share-copied {
   color: color-mix(in srgb, var(--soft) 80%, transparent);
 }
+
+/* ——— Thanks (post-notify) ——— */
+.thanks-page .site-header .header-inner {
+  justify-content: space-between;
+}
+.thanks-main {
+  min-height: 70vh;
+}
+.thanks-panel {
+  padding: clamp(3rem, 8vw, 5.5rem) 0 clamp(4rem, 10vw, 6rem);
+}
+.thanks-inner {
+  max-width: 36rem;
+}
+.thanks-body {
+  margin: 1.25rem 0 0;
+  font-size: clamp(1.15rem, 2.2vw, 1.35rem);
+  line-height: 1.55;
+  color: var(--ink);
+}
+.thanks-sign {
+  display: block;
+  margin-top: 1rem;
+  font-style: italic;
+  opacity: 0.85;
+}
+.thanks-cta {
+  margin: 1.75rem 0 0;
+}
+.thanks-cta .btn {
+  width: auto;
+  max-width: 100%;
+}
+.thanks-panel .share-bar {
+  margin-top: 1.75rem;
+}
+.thanks-back {
+  margin: 2rem 0 0;
+}
+@media (max-width: 520px) {
+  .thanks-cta .btn {
+    width: 100%;
+    text-align: center;
+  }
+}

@@ -103,10 +103,8 @@
         })
           .then(function (res) {
             if (!res.ok) throw new Error("submit failed");
-            form.hidden = true;
-            success.hidden = false;
-            success.setAttribute("tabindex", "-1");
-            success.focus();
+            window.location.href = "/thanks";
+            return;
           })
           .catch(function () {
             // Fall back to native POST if AJAX path fails
@@ -115,12 +113,39 @@
           .finally(function () {
             if (submitBtn) {
               submitBtn.disabled = false;
-              submitBtn.textContent = "Notify me";
+              submitBtn.textContent = "Walk with me to launch";
             }
           });
       }
     });
   }
+
+
+  // Free Introduction sample is gated: scroll to notify form and focus email
+  function focusNotifyEmail() {
+    var email = document.getElementById("notify-email");
+    var section = document.getElementById("notify");
+    if (section) {
+      section.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+    }
+    window.setTimeout(function () {
+      if (email) {
+        email.focus({ preventScroll: true });
+      }
+    }, reduceMotion ? 0 : 450);
+  }
+
+  document.querySelectorAll(".js-sample-gate").forEach(function (link) {
+    link.addEventListener("click", function (e) {
+      e.preventDefault();
+      focusNotifyEmail();
+      if (history.replaceState) {
+        history.replaceState(null, "", "#notify");
+      } else {
+        location.hash = "notify";
+      }
+    });
+  });
 
   // Share — copy link with fallback
   var SHARE_URL = "https://faithinmotionbook.com";
