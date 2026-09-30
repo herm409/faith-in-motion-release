@@ -390,10 +390,14 @@
           <form
             class="notify-form"
             id="notify-form"
+            name="notify"
             action="https://formsubmit.co/herman@freedombychoice.com"
             method="POST"
+            data-netlify="true"
+            netlify-honeypot="_honey"
             novalidate
           >
+            <input type="hidden" name="form-name" value="notify" />
             <input type="hidden" name="_subject" value="Faith in Motion — notify me" />
             <input type="hidden" name="_next" value="https://faithinmotionbook.com/thanks" />
             <input type="hidden" name="_captcha" value="false" />

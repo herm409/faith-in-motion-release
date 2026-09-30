@@ -61,8 +61,29 @@
 
   onScroll();
 
-  // Notify form → FormSubmit (AJAX success state; falls back to native POST)
+  // Notify form → Netlify Forms (primary, awaited with ~6s timeout) +
+  // FormSubmit AJAX (background backup, never awaited). Visitor always lands
+  // on /thanks. Without JS, the form falls back to a native POST to FormSubmit
+  // (which redirects to /thanks via _next).
+  var SUBMIT_LABEL = submitBtn ? submitBtn.textContent : "Walk with me to launch";
+  var FORMSUBMIT_AJAX = "https://formsubmit.co/ajax/herman@freedombychoice.com";
+  var NETLIFY_TIMEOUT_MS = 6000;
+  var HARD_REDIRECT_MS = 8000;
+
+  function resetSubmitBtn() {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = SUBMIT_LABEL;
+    }
+  }
+
+  // If the visitor comes back via the back button (bfcache), never show a stuck button
+  window.addEventListener("pageshow", function () {
+    resetSubmitBtn();
+  });
+
   if (form && success) {
+    var submitting = false;
     form.addEventListener("submit", function (e) {
       var email = form.querySelector("#notify-email");
       if (errorEl) {
@@ -88,35 +109,75 @@
         return;
       }
 
-      // Prefer fetch so we can show the inline pastoral success message
-      if (window.fetch) {
-        e.preventDefault();
-        var fd = new FormData(form);
-        if (submitBtn) {
-          submitBtn.disabled = true;
-          submitBtn.textContent = "Sending…";
-        }
-        fetch(form.action, {
-          method: "POST",
-          body: fd,
-          headers: { Accept: "application/json" },
-        })
-          .then(function (res) {
-            if (!res.ok) throw new Error("submit failed");
-            window.location.href = "/thanks";
-            return;
-          })
-          .catch(function () {
-            // Fall back to native POST if AJAX path fails
-            form.submit();
-          })
-          .finally(function () {
-            if (submitBtn) {
-              submitBtn.disabled = false;
-              submitBtn.textContent = "Walk with me to launch";
-            }
-          });
+      if (!window.fetch) return; // native POST fallback
+
+      e.preventDefault();
+      if (submitting) return;
+      submitting = true;
+
+      var nameEl = form.querySelector("#notify-name");
+      var honeyEl = form.querySelector('input[name="_honey"]');
+      var nameVal = nameEl ? nameEl.value.trim() : "";
+      var emailVal = email.value.trim();
+      var honeyVal = honeyEl ? honeyEl.value : "";
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Sending…";
       }
+
+      var done = false;
+      function goThanks() {
+        if (done) return;
+        done = true;
+        submitting = false;
+        window.location.href = "/thanks";
+      }
+      // Absolute safety net: the button can never hang
+      window.setTimeout(goThanks, HARD_REDIRECT_MS);
+
+      // Background backup: FormSubmit AJAX (not awaited; keepalive survives navigation)
+      try {
+        var fsData = new FormData();
+        fsData.append("_subject", "Faith in Motion — notify me");
+        fsData.append("name", nameVal);
+        fsData.append("email", emailVal);
+        fsData.append("_captcha", "false");
+        fsData.append("_honey", honeyVal);
+        fetch(FORMSUBMIT_AJAX, {
+          method: "POST",
+          body: fsData,
+          headers: { Accept: "application/json" },
+          keepalive: true,
+        }).catch(function () {});
+      } catch (err) {}
+
+      // Primary: Netlify Forms
+      var body = new URLSearchParams();
+      body.append("form-name", "notify");
+      body.append("name", nameVal);
+      body.append("email", emailVal);
+      body.append("_honey", honeyVal);
+
+      var controller = window.AbortController ? new AbortController() : null;
+      var abortTimer = window.setTimeout(function () {
+        if (controller) controller.abort();
+        goThanks();
+      }, NETLIFY_TIMEOUT_MS);
+
+      var opts = {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: body.toString(),
+      };
+      if (controller) opts.signal = controller.signal;
+
+      fetch("/", opts)
+        .then(function () {}, function () {})
+        .then(function () {
+          window.clearTimeout(abortTimer);
+          goThanks();
+        });
     });
   }
 
