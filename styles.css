@@ -1863,3 +1863,7 @@ body.has-sticky-buy { padding-bottom: 4.5rem; }
 }
 
 .buy-preorder { margin: 1rem 0 1.25rem; }
+
+/* Oct 11 2026 launch: Amazon buttons in hero/buy — status line on its own row */
+.hero-cta .cta-aside.status-line { flex-basis: 100%; max-width: 46ch; }
+.buy-amazon { margin-top: 1rem; }
