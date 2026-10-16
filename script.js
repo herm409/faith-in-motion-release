@@ -383,7 +383,7 @@
       }
       if (kind === "linkedin") {
         copyText(SHARE_TEXT).then(function () {
-          shareFeedback(bar, "Post text copied — paste if needed");
+          shareFeedback(bar, "Post text copied, paste if needed");
           openShareWindow(linkedInShareUrl());
         });
         return;
