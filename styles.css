@@ -1867,3 +1867,11 @@ body.has-sticky-buy { padding-bottom: 4.5rem; }
 /* Oct 11 2026 launch: Amazon buttons in hero/buy — status line on its own row */
 .hero-cta .cta-aside.status-line { flex-basis: 100%; max-width: 46ch; }
 .buy-amazon { margin-top: 1rem; }
+
+/* Mailing-list fine print (rev 2026-10-16) */
+.form-fineprint {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  opacity: 0.75;
+}

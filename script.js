@@ -65,7 +65,7 @@
   // FormSubmit AJAX (background backup, never awaited). Visitor always lands
   // on /thanks. Without JS, the form falls back to a native POST to FormSubmit
   // (which redirects to /thanks via _next).
-  var SUBMIT_LABEL = submitBtn ? submitBtn.textContent : "Walk with me to launch";
+  var SUBMIT_LABEL = submitBtn ? submitBtn.textContent : "Send me the devotionals";
   var FORMSUBMIT_AJAX = "https://formsubmit.co/ajax/herman@freedombychoice.com";
   var NETLIFY_TIMEOUT_MS = 6000;
   var HARD_REDIRECT_MS = 8000;
@@ -182,7 +182,7 @@
   }
 
 
-  // Free Introduction sample is gated: scroll to notify form and focus email
+  // "Get the free Midday Steps devotional" buttons: scroll to the mailing-list form and focus email
   function focusNotifyEmail() {
     var email = document.getElementById("notify-email");
     var section = document.getElementById("notify");
@@ -223,9 +223,9 @@
   // Share — prewritten post text for Facebook / X / LinkedIn
   var SHARE_URL = "https://faithinmotionbook.com/";
   var SHARE_TEXT =
-    "I'm walking with Herman Davis to the October 12 launch of Faith in Motion. " +
+    "I'm reading Faith in Motion by Herman Davis. " +
     "'Grace does not cancel purpose. Grace launches it.' " +
-    "Walk with me: https://faithinmotionbook.com";
+    "Get Herman's free devotionals: https://faithinmotionbook.com";
 
   function shareFeedback(bar, message) {
     if (!bar) return;
