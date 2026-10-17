@@ -26,6 +26,12 @@ const html = readFileSync(join(APP, 'index.html'), 'utf8');
 { const live = JSON.parse(readFileSync(join(APP, 'config.json'), 'utf8')).draftMarkers === false; const has = /name="robots"[^>]*noindex/.test(html);
   if (live === has) { fail++; console.log(live ? 'FAIL noindex still present in a go-live build' : 'FAIL noindex missing in a preview build'); }
   else console.log(live ? 'OK   go-live build: no noindex, draft markers off' : 'OK   noindex present (remove at go-live)'); }
+// steps-five wording pills: never on the production branch or in any go-live build (approved by Herman 2026-10-17).
+{ const cfg = JSON.parse(readFileSync(join(APP, 'config.json'), 'utf8'));
+  let branch = ''; try { branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: join(APP, '..') }).toString().trim(); } catch {}
+  const prodish = branch === 'steps-prod-golive' || cfg.draftMarkers === false;
+  if (prodish && cfg.newWordingDraft !== false) { fail++; console.log(`FAIL newWordingDraft must be false on ${branch || 'a go-live build'} (Draft, pending Herman pills would ship)`); }
+  else console.log(prodish ? 'OK   newWordingDraft off (no Draft, pending Herman pills)' : 'OK   newWordingDraft on (preview)'); }
 // landing page untouched vs main
 try {
   const cwd = join(APP, '..');
