@@ -3,12 +3,12 @@
  "items": {
   "door1": {
    "slot": "door1",
-   "pexelsId": 8931865,
-   "focal": "24% 60%",
-   "alt": "A lone walker with a backpack crossing a ridge in golden light",
+   "pexelsId": 1025112,
+   "focal": "50% 55%",
+   "alt": "A lone walker on a narrow path through tall golden grass under a glowing sky",
    "width": 1080,
    "height": 1350,
-   "lqip": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAABwBACdASoYAB4APtleo02oJaMjN/qoAQAbCUAAC3TY7LJ3vIMxDL3Eh/gYAAD+7fgQPDxv9x/fXLp43/pLkyAoQmpoyhguK3l7lg0kbkQh1tppbyHOodK91RJGWJDtttHbfuTdyVzlBiAAAAA=",
+   "lqip": "data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAABwBACdASoYAB4APuVip02pJaOiMAwBIByJQBYj0ABp0rBmI+VY/SkqZseIAAD+6ozMi+kGLkTG33+WJgMpaZI0VMLNMlS5LimDzHReX8lK7p9Bddi5TC06UQUJtinS9BVU92t6w64+AA==",
    "src": {
     "1080": "/app/img/door1-1080.webp",
     "640": "/app/img/door1-640.webp"
@@ -29,12 +29,12 @@
   },
   "s1": {
    "slot": "s01",
-   "pexelsId": 13471852,
-   "focal": "50% 70%",
-   "alt": "A figure walking a dirt path toward the sunrise between bare trees",
+   "pexelsId": 10952326,
+   "focal": "45% 55%",
+   "alt": "A man walking a dirt country road toward the low sun",
    "width": 1080,
    "height": 1350,
-   "lqip": "data:image/webp;base64,UklGRnwAAABXRUJQVlA4IHAAAAAQBQCdASoYAB4APu1qsFAppiSiqAqpMB2JZQDE2BDDom2AfFaRlVU3a2HMHv0GXaLAAPemG/nqzfJljEUw87LqnrP+EP1gieHFswrKWoQw/j2m9YuavIJB5F/+1D/EyZoyNYLRkwSxxPNgZ0I/gAAA",
+   "lqip": "data:image/webp;base64,UklGRm4AAABXRUJQVlA4IGIAAACQBACdASoYAB4APu1mrE+ppaQiMBgIATAdiWUAt7gQ7SQu3fGjANAilCxxLgAA/c7ocFfjJ4EGDc0rpn5sEJimtjJipFhrXZJ+6xYAiQOfqkwy5srJ76lggbYF1kUUtUAAAA==",
    "src": {
     "1080": "/app/img/s1-1080.webp",
     "640": "/app/img/s1-640.webp"

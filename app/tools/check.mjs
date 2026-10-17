@@ -28,7 +28,17 @@ const html = readFileSync(join(APP, 'index.html'), 'utf8');
   else console.log(live ? 'OK   go-live build: no noindex, draft markers off' : 'OK   noindex present (remove at go-live)'); }
 // landing page untouched vs main
 try {
-  const out = execSync('git diff --name-only main -- index.html styles.css script.js thanks.html', { cwd: join(APP, '..') }).toString().trim();
-  if (out) { fail++; console.log('FAIL landing files changed:', out); } else console.log('OK   landing files unchanged vs main');
+  const cwd = join(APP, '..');
+  const branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd }).toString().trim();
+  if (branch === 'landing-motion') {
+    // This branch exists to redesign the landing page: index/styles/script may change; thanks.html and forms.html must not.
+    const out = execSync('git diff --name-only steps-prod-golive -- thanks.html forms.html', { cwd }).toString().trim();
+    const changed = execSync('git diff --name-only main -- index.html styles.css script.js', { cwd }).toString().trim().split('\n').filter(Boolean);
+    if (out) { fail++; console.log('FAIL thanks/forms changed on landing-motion:', out); }
+    else console.log(`OK   landing-motion: thanks.html + forms.html unchanged vs steps-prod-golive; landing redesign files changed on purpose (${changed.join(', ') || 'none'})`);
+  } else {
+    const out = execSync('git diff --name-only main -- index.html styles.css script.js thanks.html', { cwd }).toString().trim();
+    if (out) { fail++; console.log('FAIL landing files changed:', out); } else console.log('OK   landing files unchanged vs main');
+  }
 } catch (e) { console.log('SKIP git compare:', e.message); }
 process.exit(fail ? 1 : 0);

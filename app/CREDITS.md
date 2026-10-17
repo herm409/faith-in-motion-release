@@ -6,9 +6,9 @@ All photos are from Pexels under the Pexels License (https://www.pexels.com/lice
 
 | Slot | Photographer | Pexels ID | Page | Downloaded |
 |---|---|---|---|---|
-| door1 | Sami Aksu | 8931865 | https://www.pexels.com/photo/silhouette-of-man-carrying-backpack-while-walking-during-golden-hour-8931865/ | 2026-10-17 |
+| door1 | Hassan OUAJBIR | 1025112 | https://www.pexels.com/photo/man-wearing-blue-hooded-sweater-1025112/ | 2026-10-17 |
 | s0 | Trace Hudson | 6152559 | https://www.pexels.com/photo/male-traveler-standing-on-top-of-mountain-and-admiring-landscape-6152559/ | 2026-10-17 |
-| s1 | pavan rudra | 13471852 | https://www.pexels.com/photo/morning-walk-of-man-on-unpaved-pathway-between-trees-13471852/ | 2026-10-17 |
+| s1 | Artem Korsakov | 10952326 | https://www.pexels.com/photo/back-view-of-a-man-walking-on-countryside-road-10952326/ | 2026-10-17 |
 | s2 | Tope J. Asokere | 3760930 | https://www.pexels.com/photo/african-man-cutting-board-in-workshop-3760930/ | 2026-10-17 |
 | s3 | Lisa Fotios | 1301856 | https://www.pexels.com/photo/person-digging-on-soil-using-garden-shovel-1301856/ | 2026-10-17 |
 | s4 | Teodor Buhl | 35815220 | https://www.pexels.com/photo/rustic-artisan-bread-loaves-in-wicker-basket-35815220/ | 2026-10-17 |

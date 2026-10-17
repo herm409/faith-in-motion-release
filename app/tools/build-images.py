@@ -22,9 +22,9 @@ os.makedirs(ORIG, exist_ok=True)
 
 # slot, pexels id, photographer, page, focal, alt, exposure tweak
 PHOTOS = [
-    ("door1", 8931865, "Sami Aksu", "https://www.pexels.com/photo/silhouette-of-man-carrying-backpack-while-walking-during-golden-hour-8931865/", "24% 60%", "A lone walker with a backpack crossing a ridge in golden light", 1.0),
+    ("door1", 1025112, "Hassan OUAJBIR", "https://www.pexels.com/photo/man-wearing-blue-hooded-sweater-1025112/", "50% 55%", "A lone walker on a narrow path through tall golden grass under a glowing sky", 1.0),
     ("s00", 6152559, "Trace Hudson", "https://www.pexels.com/photo/male-traveler-standing-on-top-of-mountain-and-admiring-landscape-6152559/", "40% 60%", "A man standing still at a cliff edge above misty mountains at dawn", 1.0),
-    ("s01", 13471852, "pavan rudra", "https://www.pexels.com/photo/morning-walk-of-man-on-unpaved-pathway-between-trees-13471852/", "50% 70%", "A figure walking a dirt path toward the sunrise between bare trees", 1.0),
+    ("s01", 10952326, "Artem Korsakov", "https://www.pexels.com/photo/back-view-of-a-man-walking-on-countryside-road-10952326/", "45% 55%", "A man walking a dirt country road toward the low sun", 1.0),
     ("s02", 3760930, "Tope J. Asokere", "https://www.pexels.com/photo/african-man-cutting-board-in-workshop-3760930/", "50% 35%", "A craftsman bent over his work in a warm, dim workshop", 1.0),
     ("s03", 1301856, "Lisa Fotios", "https://www.pexels.com/photo/person-digging-on-soil-using-garden-shovel-1301856/", "35% 40%", "A garden shovel full of dark soil", 1.0),
     ("s04", 35815220, "Teodor Buhl", "https://www.pexels.com/photo/rustic-artisan-bread-loaves-in-wicker-basket-35815220/", "50% 50%", "Round loaves of bread in a wicker basket", 1.0),

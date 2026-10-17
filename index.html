@@ -20,10 +20,19 @@
   <meta name="twitter:image" content="https://faithinmotionbook.com/assets/og-image.png" />
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23122040'/%3E%3Ctext x='16' y='23' text-anchor='middle' font-family='Georgia,serif' font-size='20' font-weight='700' fill='%23F4ECDF'%3EF%3C/text%3E%3C/svg%3E" type="image/svg+xml" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Playfair+Display:ital,wght@0,700;1,400;1,500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20261016-list" />
+  <script>document.documentElement.classList.add("js");if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("motion-ok");</script>
+  <link rel="preload" as="image" href="assets/hero/hero-poster-720.webp" type="image/webp" media="(max-width: 767px)" fetchpriority="high" />
+  <link rel="preload" as="image" href="assets/hero/hero-poster-1600.webp" type="image/webp" media="(min-width: 768px)" fetchpriority="high" />
+  <link rel="preload" as="font" href="assets/fonts/playfair-display-normal.woff2" type="font/woff2" crossorigin />
+  <link rel="preload" as="font" href="assets/fonts/cormorant-garamond-normal.woff2" type="font/woff2" crossorigin />
+  <style>
+    @font-face { font-family: "Playfair Display"; font-style: normal; font-weight: 700; font-display: swap; src: url("assets/fonts/playfair-display-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Playfair Display"; font-style: italic; font-weight: 400 500; font-display: swap; src: url("assets/fonts/playfair-display-italic.woff2") format("woff2"); }
+    @font-face { font-family: "Cormorant Garamond"; font-style: normal; font-weight: 400 600; font-display: swap; src: url("assets/fonts/cormorant-garamond-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Cormorant Garamond"; font-style: italic; font-weight: 400 500; font-display: swap; src: url("assets/fonts/cormorant-garamond-italic.woff2") format("woff2"); }
+    @font-face { font-family: "Instrument Sans"; font-style: normal; font-weight: 400 700; font-display: swap; src: url("/app/fonts/instrument-sans-var.woff2") format("woff2"); }
+  </style>
+  <link rel="stylesheet" href="styles.css?v=20261017-motion" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -51,10 +60,21 @@
   </header>
 
   <main id="main">
-    <!-- HERO -->
-    <section class="hero" id="top" aria-labelledby="hero-title">
-      <p class="spine-watermark" aria-hidden="true">Trust fully. Steward faithfully. Step forward.</p>
-      <div class="shell hero-grid">
+    <!-- HERO: full-bleed dawn path film (Pexels 18089625, Matthias Groeneveld). Poster paints first; the film loads after first paint, plays once and holds its last frame. -->
+    <section class="hero hero-film" id="top" aria-labelledby="hero-title">
+      <div class="hero-media" aria-hidden="true">
+        <picture>
+          <source media="(max-width: 767px)" srcset="assets/hero/hero-poster-720.webp" type="image/webp" />
+          <source media="(max-width: 767px)" srcset="assets/hero/hero-poster-720.jpg" />
+          <source srcset="assets/hero/hero-poster-1600.webp" type="image/webp" />
+          <img class="hero-poster" src="assets/hero/hero-poster-1600.jpg" width="1600" height="900" alt="" fetchpriority="high" decoding="async" />
+        </picture>
+        <video class="hero-video" muted playsinline preload="none" disablepictureinpicture tabindex="-1"
+          data-src-mobile-webm="assets/hero/hero-720p.webm" data-src-mobile-mp4="assets/hero/hero-720p.mp4"
+          data-src-desktop-webm="assets/hero/hero-1080.webm" data-src-desktop-mp4="assets/hero/hero-1080.mp4"></video>
+        <div class="hero-scrim"></div>
+      </div>
+      <div class="shell hero-film-inner">
         <div class="hero-copy">
           <p class="eyebrow campaign-kicker">Name it. Step into it.</p>
           <h1 id="hero-title" class="hero-title">
@@ -62,17 +82,27 @@
           </h1>
           <p class="hero-subtitle">Stepping Into the Gift God Gave You</p>
           <p class="hero-thesis">Faith is not a standstill.</p>
-          <p class="hero-oneliner">
-            When God gives a gift or a vision, He invites you to step.
-          </p>
-          <p class="hero-promise">
-            You don’t have to choose between trusting God and living on purpose.
-            <em>Faith in Motion</em> helps you recognize the standstill, steward what’s already in your hand, and take the next faithful step.
-          </p>
           <div class="hero-cta">
             <!-- LIVE Oct 11 2026: paperback ASIN B0HL396MH6 + Kindle B0HKV9P1FQ -->
             <a class="btn btn-primary" href="https://www.amazon.com/Faith-Motion-Stepping-Into-Gift/dp/B0HL396MH6" target="_blank" rel="noopener noreferrer" data-cta="amazon-paperback">Order the paperback, $14.99</a>
             <a class="btn btn-secondary" href="https://www.amazon.com/dp/B0HKV9P1FQ" target="_blank" rel="noopener noreferrer" data-cta="amazon-kindle">Kindle, free app, $4.99</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HERO DETAIL: the book as an object, the promise, and the rest of the hero copy -->
+    <section class="hero-detail" aria-label="About the book">
+      <div class="shell hero-detail-grid">
+        <div class="hero-detail-copy">
+          <p class="hero-oneliner reveal">
+            When God gives a gift or a vision, He invites you to step.
+          </p>
+          <p class="hero-promise reveal">
+            You don’t have to choose between trusting God and living on purpose.
+            <em>Faith in Motion</em> helps you recognize the standstill, steward what’s already in your hand, and take the next faithful step.
+          </p>
+          <div class="hero-cta reveal">
             <a class="btn btn-secondary" href="https://www.amazon.com/dp/B0HKV9P1FQ" target="_blank" rel="noopener noreferrer" data-cta="amazon-sample">Read a sample on Amazon</a>
             <p class="cta-aside status-line">The paperback (hard copy, $14.99) and the $4.99 Kindle ebook are available now on Amazon. No Kindle device needed: read the ebook on the free Kindle app on iPhone, Android, or computer. Want a free devotional from the book? <a class="soft-link" href="#notify">Join the mailing list</a>.</p>
           </div>
@@ -95,21 +125,18 @@
             <a class="soft-link" href="#sit">Sit with one question</a>
           </p>
         </div>
-        <div class="hero-cover">
-          <div class="cover-stage">
-          <figure class="cover-object cover-framed">
-            <img
-              src="assets/cover-front.png"
-              srcset="assets/cover-front.png 900w, assets/cover-front-hi.png 1800w"
-              sizes="(max-width: 720px) 78vw, 440px"
-              width="900"
-              height="1358"
-              alt="Faith in Motion book cover: a lone walker on a mountain ridge at dawn, title in white serif type"
-              decoding="async"
-              fetchpriority="high"
-            />
+        <div class="hero-book">
+          <figure class="book3d book-in" aria-label="Faith in Motion book cover">
+            <div class="book3d-inner">
+              <picture>
+                <source type="image/avif" srcset="assets/cover-clean-600.avif 600w, assets/cover-clean-900.avif 900w" sizes="(max-width: 860px) 62vw, 360px" />
+                <source type="image/webp" srcset="assets/cover-clean-600.webp 600w, assets/cover-clean-900.webp 900w" sizes="(max-width: 860px) 62vw, 360px" />
+                <img class="book3d-front" src="assets/cover-clean-900.jpg" width="900" height="1194" alt="Faith in Motion book cover: a lone walker on a mountain ridge at dawn, title in white serif type" loading="lazy" decoding="async" />
+              </picture>
+              <span class="book3d-spine" aria-hidden="true"></span>
+              <span class="book3d-pages" aria-hidden="true"></span>
+            </div>
           </figure>
-          </div>
         </div>
       </div>
     </section>
@@ -118,7 +145,7 @@
     <section class="tension" id="tension" aria-labelledby="tension-title">
       <div class="shell tension-inner">
         <p class="section-kicker">The tension</p>
-        <h2 id="tension-title" class="display-lg">Holy waiting, or avoidance?</h2>
+        <h2 id="tension-title" class="reveal display-lg">Holy waiting, or avoidance?</h2>
         <div class="tension-prose">
           <p>
             Holy waiting is real. Scripture knows seasons of stillness that honor God.
@@ -152,11 +179,24 @@
       </div>
     </section>
 
+    <!-- PHOTO BAND: graded Pexels photo (see assets/CREDITS.md), slow push-in; quote is verbatim from this page -->
+    <section class="photo-band" aria-label="A lone walker on a foggy road">
+      <picture class="band-media">
+        <source media="(max-width: 767px)" srcset="assets/bands/road-fog-800.webp" type="image/webp" />
+        <img src="assets/bands/road-fog-1600.webp" width="1600" height="900" alt="" loading="lazy" decoding="async" />
+      </picture>
+      <div class="band-scrim" aria-hidden="true"></div>
+      <blockquote class="shell band-quote reveal">
+        <p>Faith is not a standstill. Noah built. Abraham went.</p>
+        <span class="band-rule" aria-hidden="true"></span>
+      </blockquote>
+    </section>
+
     <!-- PROMISE -->
     <section class="promise" id="promise" aria-labelledby="promise-title">
       <div class="shell promise-inner">
         <p class="section-kicker">The promise</p>
-        <h2 id="promise-title" class="display-md">Faith rests, and moves.</h2>
+        <h2 id="promise-title" class="reveal display-md">Faith rests, and moves.</h2>
         <p class="promise-north">
           Faith rests in God’s sovereignty, and moves in obedience.
         </p>
@@ -204,7 +244,7 @@
     <section class="foryou" id="for-you" aria-labelledby="foryou-title">
       <div class="shell foryou-inner">
         <p class="section-kicker">Sincerity check</p>
-        <h2 id="foryou-title" class="display-md">This book is for you if…</h2>
+        <h2 id="foryou-title" class="reveal display-md">This book is for you if…</h2>
         <ul class="foryou-list foryou-grid">
           <li>you love God and still feel stuck</li>
           <li>you’ve baptized delay as “waiting on the Lord”</li>
@@ -214,35 +254,48 @@
       </div>
     </section>
 
+    <!-- PHOTO BAND: graded Pexels photo (see assets/CREDITS.md), slow push-in; quote is verbatim from this page -->
+    <section class="photo-band band-right" aria-label="Weathered hands holding soil and seeds">
+      <picture class="band-media">
+        <source media="(max-width: 767px)" srcset="assets/bands/seeds-800.webp" type="image/webp" />
+        <img src="assets/bands/seeds-1600.webp" width="1600" height="900" alt="" loading="lazy" decoding="async" />
+      </picture>
+      <div class="band-scrim" aria-hidden="true"></div>
+      <blockquote class="shell band-quote reveal">
+        <p>Steward What’s in Your Hand Today</p>
+        <span class="band-rule" aria-hidden="true"></span>
+      </blockquote>
+    </section>
+
     <!-- CHAPTERS / PATH — real TOC from TEXT-LOCKED manuscript -->
     <section class="inside" id="inside" aria-labelledby="inside-title">
       <div class="shell">
         <header class="inside-head">
           <p class="section-kicker">Inside the book</p>
-          <h2 id="inside-title" class="display-md">The path</h2>
+          <h2 id="inside-title" class="reveal display-md">The path</h2>
           <p class="inside-lede">
             Clear teaching, pastoral warmth, and practical next steps, not hype, and not a guilt trip.
             Each chapter closes with reflection questions and a weekly practice.
           </p>
         </header>
 
-        <div class="chapter-map" aria-label="Table of contents">
+        <div class="chapter-map has-route" aria-label="Table of contents">
           <aside class="map-stage" aria-hidden="true">
-            <figure class="cover-object cover-framed map-cover">
-              <img
-                src="assets/cover-front.png"
-                srcset="assets/cover-front.png 900w, assets/cover-front-hi.png 1800w"
-                sizes="(max-width: 900px) 0px, 240px"
-                width="900"
-                height="1358"
-                alt=""
-                decoding="async"
-                loading="lazy"
-              />
+            <figure class="book3d book3d-sm book-in">
+              <div class="book3d-inner">
+                <picture>
+                  <source type="image/avif" srcset="assets/cover-clean-600.avif" />
+                  <source type="image/webp" srcset="assets/cover-clean-600.webp" />
+                  <img class="book3d-front" src="assets/cover-clean-900.jpg" width="900" height="1194" alt="" loading="lazy" decoding="async" />
+                </picture>
+                <span class="book3d-spine"></span>
+                <span class="book3d-pages"></span>
+              </div>
             </figure>
             <p class="map-stage-note">Ten chapters. Reflection and a weekly practice at the close of each.</p>
           </aside>
           <div class="map-toc">
+            <svg class="route-line" aria-hidden="true" focusable="false"><path class="route-trail" d="" /><path class="route-walked" d="" /></svg>
             <div class="map-block map-opening">
               <p class="map-part">Opening</p>
               <ol class="map-list">
@@ -284,6 +337,37 @@
       </div>
     </section>
 
+    <!-- STEPS APP: free companion (copy from the app's own intro) -->
+    <section class="steps-app" id="steps-app" aria-labelledby="steps-app-title">
+      <div class="shell steps-app-grid">
+        <div class="steps-app-copy">
+          <p class="section-kicker reveal">Free companion app</p>
+          <h2 id="steps-app-title" class="display-md on-navy reveal">Walk it with the free Steps app</h2>
+          <p class="steps-app-lede reveal">
+            <em>Faith in Motion: Steps</em> is a free companion to the book. It doesn’t replace the book. It walks with you through it, one chapter and one real step at a time.
+          </p>
+          <p class="steps-app-body reveal">
+            Every stop sends you to a chapter first. Then it helps you name where you’re stuck, pick one clear next step, put a date on it, tell one trusted believer, and go do it. No streaks. No scoreboards. Just one honest step a week.
+          </p>
+          <div class="hero-cta reveal">
+            <a class="btn btn-primary" href="/app/" data-cta="steps-app">Open the Steps app</a>
+            <a class="btn btn-secondary btn-on-dark" href="/app/start/try" data-cta="steps-try">Try one step free</a>
+          </div>
+          <p class="steps-app-fine reveal">Twelve stops, one for each part of the book. Your journal is private to you.</p>
+        </div>
+        <div class="steps-app-phone reveal" aria-hidden="true">
+          <div class="phone-frame">
+            <img src="/app/img/door1-640.webp" width="640" height="800" alt="" loading="lazy" decoding="async" />
+            <div class="phone-ui">
+              <p class="phone-lockup"><b>Faith </b><i>in Motion</i><span>Steps</span></p>
+              <span class="phone-btn">I have the book</span>
+              <span class="phone-btn phone-btn-ghost">I don’t have the book yet</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- BOOK SPECS -->
     <section class="specs" id="specs" aria-labelledby="specs-title">
       <div class="shell specs-inner">
@@ -302,7 +386,7 @@
     <section class="sit" id="sit" aria-labelledby="sit-title">
       <div class="shell sit-inner">
         <p class="section-kicker">One question</p>
-        <h2 id="sit-title" class="display-sm">Sit with this</h2>
+        <h2 id="sit-title" class="reveal display-sm">Sit with this</h2>
         <p class="sit-question">
           What gift, vision, or open door have you been calling “waiting on the Lord,”
           when the next faithful step is already in front of you?
@@ -316,17 +400,34 @@
       </div>
     </section>
 
+    <!-- PHOTO BAND: graded Pexels photo (see assets/CREDITS.md), slow push-in; quote is verbatim from this page -->
+    <section class="photo-band" aria-label="A country road with long tree shadows at sunrise">
+      <picture class="band-media">
+        <source media="(max-width: 767px)" srcset="assets/bands/road-sunrise-800.webp" type="image/webp" />
+        <img src="assets/bands/road-sunrise-1600.webp" width="1600" height="900" alt="" loading="lazy" decoding="async" />
+      </picture>
+      <div class="band-scrim" aria-hidden="true"></div>
+      <blockquote class="shell band-quote reveal">
+        <p>Read. Reflect. Practice one faithful move at a time.</p>
+        <span class="band-rule" aria-hidden="true"></span>
+      </blockquote>
+    </section>
+
     <!-- ABOUT -->
     <section class="about" id="about" aria-labelledby="about-title">
       <div class="shell about-grid">
         <figure class="about-photo">
-          <img
-            src="assets/herman-headshot.jpg"
-            width="320"
-            height="320"
-            alt="Herman Davis, author of Faith in Motion"
-            decoding="async"
-          />
+          <picture>
+            <source srcset="assets/herman-headshot-640.webp" type="image/webp" />
+            <img
+              src="assets/herman-headshot-640.jpg"
+              width="320"
+              height="320"
+              alt="Herman Davis, author of Faith in Motion"
+              loading="lazy"
+              decoding="async"
+            />
+          </picture>
         </figure>
         <div class="about-copy">
           <p class="section-kicker kicker-on-navy">About the author</p>
@@ -355,7 +456,7 @@
     <section class="groups" id="groups" aria-labelledby="groups-title">
       <div class="shell groups-inner">
         <p class="section-kicker">For pastors &amp; small groups</p>
-        <h2 id="groups-title" class="display-md">Walk it together</h2>
+        <h2 id="groups-title" class="reveal display-md">Walk it together</h2>
         <p class="groups-body">
           <em>Faith in Motion</em> was written to be lived, not only read.
           Reflection questions and weekly practices at the end of each chapter
@@ -376,7 +477,7 @@
       <div class="shell buy-inner">
         <div class="buy-copy">
           <p class="section-kicker">Free devotionals · Book news · Future books</p>
-          <h2 id="buy-title" class="display-md">Keep walking with me.</h2>
+          <h2 id="buy-title" class="reveal display-md">Keep walking with me.</h2>
           <p class="buy-invite" id="sample-unlock-note">
             Join my mailing list and I’ll send you short devotionals drawn from <em>Faith in Motion</em>. It starts with the Midday Steps: seven 5-minute pauses, one a day at noon, each with one lesson from the book and one question to carry through your day. You’ll also be the first to hear about new books, group resources, and what I’m writing next.
           </p>
@@ -486,6 +587,6 @@
     </div>
   </aside>
 
-  <script src="script.js?v=20261016-list" defer></script>
+  <script src="script.js?v=20261017-motion" defer></script>
 </body>
 </html>
