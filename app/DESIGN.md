@@ -44,6 +44,7 @@ Local first. IndexedDB on the device is the source of truth and the app works fu
 - JWT: EdDSA only, verified against the Neon Auth JWKS, issuer and audience checked, email must be verified, user must still exist.
 - Merge: last write wins per field (stop answers per question, profile per field, steps and motion checks per item), each with a client timestamp. Blank defaults carry t=1 so they never overwrite real data. Push dirty fields, then pull everything newer than the server cursor. A new device merges, it never wipes.
 - Sync runs on local change (debounced), when back online, when the app becomes visible, and every 60 seconds while signed in.
+- Another device: the Fork has "Already using Steps on another device? Sign in to load your journal."; the Account screen explains it signed out and lists the steps signed in. After a sign-in that pulls data, the Account screen confirms "Your journal is loaded on this device." The sync line reads "Synced just now." for the first minute.
 - Delete my account and data: deletes all rows, sessions and the auth user server side; optionally erases this phone too.
 - Limits: sign-in code send 5 per email and 10 per IP per 10 minutes; code entry 8 per email and 20 per IP per 10 minutes; sync 240 requests per minute per user. CORS allows only the preview origin and faithinmotionbook.com.
 - Env vars (Netlify, branch-deploy context only): `FIM_STEPS_AUTH_URL`, `FIM_STEPS_DATABASE_URL`, `FIM_STEPS_DATA_KEY`.
@@ -56,3 +57,6 @@ Local first. IndexedDB on the device is the source of truth and the app works fu
 
 ## Draft markers (preview only)
 `config.json` `draftMarkers: true` shows a small amber-outlined pill ("Draft, pending Herman", text from `draftMarkerText`) on prices (Get the book, gift, the Read screen Kindle link), each Pray screen, the Walk with me button and share card, and the testimony consent. Set `draftMarkers` to `false` at go-live; no content edits needed. Crisis lines carry no marker.
+
+## Finishing a stop
+The Review button on each stop goes to the send-off with `?done=<stop>`. It shows "Stop N complete", a warm line, and one primary button "Go to Stop N+1: <title>". The last stop points to the Route instead. Readers without the book see that the next stop opens with the book. Today names the next stop ("Up next") even while a weekly step is open.

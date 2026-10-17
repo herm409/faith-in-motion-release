@@ -34,8 +34,8 @@ export async function verifyCode(email, otp) {
   jwt = null;
   const prev = state();
   save({ userId: r.user.id, email: r.user.email, cursor: prev?.userId === r.user.id ? prev.cursor || 0 : 0, lastSyncAt: null, needsSignIn: false });
-  await syncNow();
-  return r.user;
+  const res = await syncNow();
+  return { ...r.user, pulled: res?.pulled || 0, synced: !res?.error && !res?.skipped };
 }
 export async function signOut() {
   try { await call('/api/auth/sign-out', { method: 'POST', body: {} }); } catch { /* offline: the local sign-out still happens */ }

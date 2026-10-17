@@ -182,6 +182,12 @@ input:focus-visible, textarea:focus-visible { outline: 2px solid var(--amber); o
 
 /* Send-off */
 .sendoff .fg h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(2rem, 9vw, 3rem); line-height: 1.12; margin: 0 0 18px; letter-spacing: -0.01em; }
+.sendoff .fg .eyebrow { font-family: var(--f-ui); font-size: 15px; font-weight: 600; letter-spacing: .02em; color: var(--first-light); margin: 0 0 8px; }
+.sendoff .fg .lede { font-family: var(--f-read); font-size: 1.2rem; line-height: 1.45; margin: 0 0 20px; max-width: 30rem; }
+.sendoff .fg .quiet-light { font-family: var(--f-ui); font-size: 16px; color: var(--cream); opacity: .9; margin: 0; }
+.sendoff .btn-next { width: 100%; justify-content: center; text-align: center; white-space: normal; line-height: 1.3; padding-top: 14px; padding-bottom: 14px; }
+.up-next { margin: 16px 0 0; }
+.up-next .label { margin: 0; }
 
 /* Bottom sheets */
 .scrim { position: fixed; inset: 0; z-index: 30; background: rgba(25, 41, 53, .55); opacity: 0; transition: opacity var(--t-fast) var(--ease); }
@@ -234,3 +240,13 @@ input:focus-visible, textarea:focus-visible { outline: 2px solid var(--amber); o
 .danger-zone { margin-top: 36px; padding-top: 20px; border-top: 1px solid var(--hair); }
 .btn-delete { border-color: var(--umber); color: var(--umber); }
 [hidden] { display: none !important; }
+/* Another device: how-to and loaded confirmation */
+.acct-howto { background: rgba(70, 53, 38, .05); border: 1px solid var(--hair); border-radius: var(--r-sheet); padding: 18px; margin: 24px 0; }
+.acct-howto .heading { margin-top: 0; }
+.acct-howto p { margin: 8px 0 0; font-size: 17px; line-height: 1.5; }
+.howto-steps { margin: 10px 0 0; padding-left: 1.4em; font-size: 17px; line-height: 1.5; }
+.howto-steps li { margin: 6px 0; overflow-wrap: anywhere; }
+.acct-loaded { background: rgba(232, 160, 74, .16); border: 1px solid var(--amber); border-radius: var(--r-sheet); padding: 16px 18px; margin: 8px 0 18px; }
+.acct-loaded p { margin: 6px 0 0; }
+.acct-loaded .acct-loaded-title { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: 1.3rem; line-height: 1.25; color: var(--navy); }
+.fork-signin { margin-top: 6px; }

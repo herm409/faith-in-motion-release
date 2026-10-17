@@ -21,6 +21,21 @@ const DEFAULT_STRINGS = {
   testimonyThanks: 'Thank you. Herman reads every one.', amazonAlso: 'Also post this as an Amazon review',
   notifySuccess: "You're on the list. The first Midday Step arrives soon.", draftCopy: 'Draft copy',
   sundayAsk: 'Traded or buried?', pickNext: "Pick next week's step",
+  upNext: 'Up next', stopDone: 'Stop {n} complete', stopDoneHeading: 'Well done. You walked this stop.',
+  stopDoneWarm: "I'm glad you stayed with it. Rest a moment, then take the next stop when you're ready.",
+  goToStop: 'Go to Stop {n}: {title}', startStop: 'Start Stop {n}', continueStop: 'Continue Stop {n}',
+  nextNeedsBook: 'Up next is Stop {n}: {title}. It opens with the book.',
+  routeDone: 'You walked the whole Route.', seeRoute: 'See the whole Route',
+  routeDoneWarm: "That's every stop. Keep going one faithful step at a time, and look back at how far you've come.",
+  upNextIn: 'When you come back, Stop {n} continues with {screen}.',
+  forkSignIn: 'Already using Steps on another device? Sign in to load your journal.',
+  howtoHeadingOut: 'Already using Steps somewhere else?',
+  howtoOut: 'Sign in here with the same email you used on your other phone or computer. Enter the code we email you, and your journal will load on this device on its own.',
+  howtoHeadingIn: 'Add another phone or computer',
+  howtoIn1: 'Open Steps there: {url}', howtoIn2: 'Open the menu and tap Sign in to sync.',
+  howtoIn3: 'Enter {email}, then the code we email you.', howtoIn4: 'Your journal loads on its own. After that, changes sync both ways whenever you are online.',
+  loadedHere: 'Your journal is loaded on this device.', loadedHereMore: 'Everything from your account is here now, and new answers will keep syncing.',
+  openJournal: 'Open my journal', signedInFresh: "You're signed in. What you write here will sync to your account.",
 };
 let cache;
 async function j(path) {

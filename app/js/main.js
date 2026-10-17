@@ -15,6 +15,7 @@ let prof; // profile
 const app = document.getElementById('app');
 let swReg = null, deferredPrompt = null, updateWaiting = false, journaling = false;
 const T = () => c.strings;
+const tf = (key, vars) => String(T()[key] || '').replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
 // append that skips null/false (Element.append would print "null")
 // Draft markers: driven by config.draftMarkers so go-live needs no content edits.
 const draftPill = (what) => (c?.config?.draftMarkers ? h('span', { class: 'draft-pill', 'data-draft': what, title: `${what}: not final yet` }, c.config.draftMarkerText || 'Draft, pending Herman') : null);
@@ -205,7 +206,8 @@ function viewFork() {
       h('div', { class: 'btn-row' },
         h('button', { class: 'btn btn-primary', type: 'button', onclick: async () => { prof = await db.saveProfile({ door: 'have' }); go('/app/'); } }, T().haveBook),
         h('button', { class: 'btn btn-secondary', type: 'button', onclick: async () => { prof = await db.saveProfile({ door: 'none' }); go('/app/start'); } }, T().noBook)),
-      h('p', { class: 'fineline', text: T().noAccount }), draftPill('Privacy wording'))));
+      h('p', { class: 'fineline', text: T().noAccount }), draftPill('Privacy wording'),
+      h('p', { class: 'fineline fork-signin' }, link('/app/account', T().forkSignIn, { class: 'textlink' })))));
 }
 
 // ---------- Door 1 ----------
@@ -318,10 +320,13 @@ async function viewToday() {
       h('div', { class: 'btn-row' },
         h('button', { class: 'btn btn-primary', type: 'button', onclick: (e) => tookStep(step, e.currentTarget) }, T().tookStep),
         h('button', { class: 'btn btn-secondary', type: 'button', onclick: () => newDatePicker(step, dateBox) }, T().newDate)), dateBox);
+    if (stop.id !== step.stopId) ap(card, h('p', { class: 'up-next' }, h('span', { class: 'label', text: T().upNext }), ' ', link(`/app/stop/${stop.id}/${screen}`, `Stop ${stop.order}: ${stop.title}`, { class: 'textlink' })));
   } else {
-    ap(card, h('p', { class: 'label', text: c.door1.home?.todayLabel || 'Today' }),
-      h('h2', {}, `Continue Stop ${stop.order}: ${stop.screens[screen].heading}`),
-      h('div', { class: 'btn-row' }, link(`/app/stop/${stop.id}/${screen}`, 'Continue', { class: 'btn btn-primary' })));
+    const fresh = screen === 'read' && !(await db.progress(stop.id)).visited?.read;
+    ap(card, h('p', { class: 'label', text: T().upNext }),
+      h('h2', {}, `Stop ${stop.order}: ${stop.title}`),
+      h('p', { class: 'quiet', text: stop.screens[screen].heading }),
+      h('div', { class: 'btn-row' }, link(`/app/stop/${stop.id}/${screen}`, fresh ? tf('startStop', { n: stop.order }) : tf('continueStop', { n: stop.order }), { class: 'btn btn-primary' })));
   }
   if (new Date().getDay() === 0) {
     const last = steps.filter((x) => !x.outcome && new Date(x.createdAt) >= new Date(weekStart().getTime() - 7 * 86400000)).sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
@@ -496,11 +501,14 @@ async function viewStop(id, screen) {
   };
   const nextBtn = (label, after) => h('button', { class: 'btn btn-primary', type: 'button', onclick: async () => { await persist(); if (after) await after(); } }, label);
   const toNext = async () => { if (nextName) { prof = await db.saveProfile({ lastStopId: stop.id, lastScreen: nextName }); go(`/app/stop/${stop.id}/${nextName}`); } };
-  const toSendoff = async (target) => {
+  const toSendoff = async (target, { finished = false } = {}) => {
     const ns = target || (nextName ? { id: stop.id, screen: nextName } : nextStop(stop));
     const wasD1 = prof?.door !== 'have';
     prof = await db.saveProfile({ lastStopId: ns.id, lastScreen: ns.screen });
-    go(wasD1 && screen === 'review' ? '/app/sendoff?d1=1' : '/app/sendoff');
+    const q = new URLSearchParams();
+    if (wasD1 && screen === 'review') q.set('d1', '1');
+    if (finished) q.set('done', stop.id);
+    go(`/app/sendoff${String(q) ? '?' + q : ''}`);
   };
   const body = h('div', { class: 'screen' }, h('h2', { class: 'heading', text: sc.heading }));
   const quote = sc.quote ? h('p', { class: 'pull', text: sc.quote }) : null; // at most one line of book text
@@ -673,7 +681,7 @@ function reviewForm(stop, sc, p, persist, toSendoff, saveDeb, ind) {
   ap(wrap, ind, h('div', { class: 'prose' }, paras(sc.body)), ...verses(sc.verses));
   if (prof?.door === 'have') ap(wrap, h('div', { class: 'btn-row' }, link(`/app/share?card=stop&stop=${stop.id}`, 'Share that I finished this stop', { class: 'btn btn-secondary' })));
   if (stop.order === 3 || stop.order === 11) ap(wrap, h('div', { class: 'card' }, h('h3', { text: c.testimony.heading }), h('p', { class: 'quiet', text: c.testimony.intro }), link(`/app/testimony?stop=${stop.id}`, 'Send a testimony', { class: 'btn btn-secondary' })));
-  ap(wrap, h('div', { class: 'btn-row' }, h('button', { class: 'btn btn-primary', type: 'button', onclick: async () => { p.finishedAt = p.finishedAt || new Date().toISOString(); await persist(); toSendoff(nextStop(stop)); } }, sc.cta)));
+  ap(wrap, h('div', { class: 'btn-row' }, h('button', { class: 'btn btn-primary', type: 'button', onclick: async () => { p.finishedAt = p.finishedAt || new Date().toISOString(); await persist(); toSendoff(nextStop(stop), { finished: true }); } }, sc.cta)));
   return wrap;
 }
 let plateHandler = null;
@@ -692,12 +700,34 @@ function warm(stop) {
 function viewSendoff() {
   document.title = 'Go take your step | Steps';
   const q = new URLSearchParams(location.search); const d1 = q.has('d1'), fromShare = q.has('share');
-  const { stop } = nextScreen();
-  mount(h('main', { class: 'dark full sendoff' }, h('div', { class: 'bg' }, img(stopImg(stop) || c.img.items.door1, { eager: true, altOverride: '' })), topbar(),
-    h('div', { class: 'fg' },
-      h('h1', { text: d1 ? T().tryEnd : fromShare ? T().shareSendoff : T().sendoff }),
+  const { stop, screen } = nextScreen();
+  const done = C.stopById(c, q.get('done'));
+  const next = done ? c.stops[c.stops.indexOf(done) + 1] : null;
+  const back = h('p', { style: 'margin-top:14px' }, link(d1 ? '/app/start' : '/app/', T().backToday, { class: 'textlink' }));
+  let fg;
+  if (done && d1) {
+    fg = [h('p', { class: 'eyebrow', text: tf('stopDone', { n: done.order }) }), h('h1', { text: T().tryEnd }),
+      next ? h('p', { class: 'lede', text: tf('nextNeedsBook', { n: next.order, title: next.title }) }) : null,
+      h('div', { class: 'btn-row' }, link('/app/start/book', T().getBook, { class: 'btn btn-primary' }), link('/app/start/notify', c.door1.signup.heading, { class: 'btn btn-secondary' })), back];
+  } else if (done && next) {
+    document.title = `${tf('stopDone', { n: done.order })} | Steps`;
+    fg = [h('p', { class: 'eyebrow', text: tf('stopDone', { n: done.order }) }), h('h1', { text: T().stopDoneHeading }),
+      h('p', { class: 'lede', text: T().stopDoneWarm }),
+      h('div', { class: 'btn-row' }, link(`/app/stop/${next.id}/read`, tf('goToStop', { n: next.order, title: next.title }), { class: 'btn btn-primary btn-next' })), back];
+  } else if (done) {
+    document.title = `${T().routeDone} | Steps`;
+    fg = [h('p', { class: 'eyebrow', text: tf('stopDone', { n: done.order }) }), h('h1', { text: T().routeDone }),
+      h('p', { class: 'lede', text: T().routeDoneWarm }),
+      h('div', { class: 'btn-row' }, link('/app/route', T().seeRoute, { class: 'btn btn-primary btn-next' })), back];
+  } else {
+    fg = [h('h1', { text: d1 ? T().tryEnd : fromShare ? T().shareSendoff : T().sendoff }),
       d1 ? h('div', { class: 'btn-row' }, link('/app/start/book', T().getBook, { class: 'btn btn-primary' }), link('/app/start/notify', c.door1.signup.heading, { class: 'btn btn-secondary' })) : null,
-      h('p', { style: 'margin-top:14px' }, link(d1 ? '/app/start' : '/app/', T().backToday, { class: 'textlink' })))));
+      !d1 && !fromShare && stop.screens[screen] ? h('p', { class: 'lede quiet-light', text: tf('upNextIn', { n: stop.order, screen: SCREEN_NAMES[screen] }) }) : null,
+      back];
+  }
+  mount(h('main', { class: 'dark full sendoff' }, h('div', { class: 'bg' }, img(stopImg(next || stop) || c.img.items.door1, { eager: true, altOverride: '' })), topbar(),
+    h('div', { class: 'fg' }, ...fg)));
+  document.querySelector('.btn-next')?.focus({ preventScroll: true });
 }
 
 // ---------- My steps (L1) ----------
@@ -906,27 +936,42 @@ function viewAccount() {
       const v = code.value.replace(/\s/g, '');
       if (!/^\d{4,10}$/.test(v)) { fieldError(code, 'Enter the 6-digit code from the email.'); code.focus(); return; }
       fieldError(code, null); status.textContent = 'Signing in...';
-      try { await account.verifyCode(email.value.trim(), v); prof = await db.profile(); viewAccount(); announce('Signed in. Your journal is syncing.'); }
+      try { const u = await account.verifyCode(email.value.trim(), v); prof = await db.profile();
+        sessionStorage.setItem('fim-just-signed-in', u.pulled ? 'loaded' : u.synced ? 'empty' : 'pending');
+        viewAccount(); announce(u.pulled ? T().loadedHere : 'Signed in. Your journal is syncing.'); }
       catch (err) { status.textContent = authMsg(err); }
     });
     ap(sheet, h('h1', { class: 'h1', text: st?.needsSignIn ? 'Sign in again' : 'Use Steps on any device' }),
       h('p', { class: 'prose', text: st?.needsSignIn ? 'Your sign-in expired. Sign in again to keep syncing. Nothing on this phone was lost.' : 'Signing in is optional. Steps works fully without an account, even offline. Sign in with your email to keep your journal on every device you use.' }),
       ...privacy, form,
-      h('p', { class: 'fineprint', text: 'No password. We email you a one-time code. Your email is used only to sign you in.' }));
+      h('p', { class: 'fineprint', text: 'No password. We email you a one-time code. Your email is used only to sign you in.' }),
+      st?.needsSignIn ? null : h('section', { class: 'acct-howto', 'aria-labelledby': 'howto-h' },
+        h('h2', { id: 'howto-h', class: 'heading', text: T().howtoHeadingOut }), h('p', { text: T().howtoOut })));
     return;
   }
   const syncLine = h('p', { class: 'sync-line', role: 'status', 'aria-live': 'polite' });
   const paint = () => { const s = account.state(); if (!s) return;
     syncLine.textContent = !navigator.onLine ? "You're offline. Changes are saved on this phone and will sync when you're back online."
       : s.syncState === 'syncing' ? 'Syncing...' : s.syncState === 'error' ? (s.syncError === 'busy' ? 'Sync is busy. It will try again soon.' : "Couldn't sync just now. It will try again.")
-      : `Synced. Last sync ${fmtTime(s.lastSyncAt)}.`; };
+      : s.lastSyncAt && Date.now() - Date.parse(s.lastSyncAt) < 60000 ? 'Synced just now.' : `Synced. Last sync ${fmtTime(s.lastSyncAt)}.`; };
   paint(); const onAcct = () => paint(); addEventListener('fim-account', onAcct); addEventListener('online', onAcct); addEventListener('offline', onAcct);
+  const tick = setInterval(() => { if (!syncLine.isConnected) clearInterval(tick); else paint(); }, 20000);
+  const just = sessionStorage.getItem('fim-just-signed-in'); sessionStorage.removeItem('fim-just-signed-in');
+  const loaded = just === 'loaded' ? h('div', { class: 'acct-loaded', role: 'status' }, h('p', { class: 'acct-loaded-title', text: T().loadedHere }), h('p', { text: T().loadedHereMore }),
+      h('div', { class: 'btn-row' }, link('/app/', T().openJournal, { class: 'btn btn-primary' })))
+    : just ? h('div', { class: 'acct-loaded', role: 'status' }, h('p', { class: 'acct-loaded-title', text: T().signedInFresh })) : null;
+  const howto = h('section', { class: 'acct-howto', 'aria-labelledby': 'howto-h' },
+    h('h2', { id: 'howto-h', class: 'heading', text: T().howtoHeadingIn }),
+    h('ol', { class: 'howto-steps' },
+      h('li', {}, tf('howtoIn1', { url: `${location.host}/app` })), h('li', { text: T().howtoIn2 }),
+      h('li', {}, tf('howtoIn3', { email: st.email })), h('li', { text: T().howtoIn4 })));
   const erase = h('input', { type: 'checkbox', id: 'acct-erase', checked: true });
   const delStatus = h('p', { class: 'help', role: 'status', 'aria-live': 'polite' });
   ap(sheet, h('h1', { class: 'h1', text: 'Account and sync' }),
-    h('p', { class: 'acct-who' }, 'Signed in as ', h('strong', { text: st.email })), syncLine, ...privacy,
-    h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn btn-primary', onclick: async () => { await account.syncNow(); paint(); } }, 'Sync now'),
+    loaded, h('p', { class: 'acct-who' }, 'Signed in as ', h('strong', { text: st.email })), syncLine, ...privacy,
+    h('div', { class: 'btn-row' }, h('button', { type: 'button', class: loaded && just === 'loaded' ? 'btn btn-secondary' : 'btn btn-primary', onclick: async () => { await account.syncNow(); paint(); } }, 'Sync now'),
       link('/app/backup', 'Save a backup file', { class: 'btn btn-secondary' })),
+    howto,
     h('p', {}, h('button', { type: 'button', class: 'textlink', onclick: async () => { await account.signOut(); viewAccount(); announce('Signed out. Your journal is still on this phone.'); } }, 'Sign out')),
     h('p', { class: 'help', text: 'Signing out keeps your journal on this phone. It stops syncing until you sign in again.' }),
     h('section', { class: 'danger-zone', 'aria-labelledby': 'del-h' },
