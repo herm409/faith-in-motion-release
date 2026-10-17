@@ -1,6 +1,9 @@
 {
   "inviteCopyApproved": false,
   "introPdfOffered": true,
+  "draftMarkers": true,
+  "draftMarkerText": "Draft, pending Herman",
+  "_draftMarkersNote": "true shows a small Draft, pending Herman pill on the testimony consent, the Walk with me invite, prices, and the prayers. Set to false at go-live; no content edits needed.",
   "formsMode": "live",
   "_formsModeNote": "live posts to Netlify Forms at '/'. stub keeps submissions in the outbox and never sends (used for local tests).",
   "kindleUrl": "https://www.amazon.com/dp/B0HKV9P1FQ",

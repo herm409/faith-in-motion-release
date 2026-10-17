@@ -15,6 +15,8 @@ const app = document.getElementById('app');
 let swReg = null, deferredPrompt = null, updateWaiting = false, journaling = false;
 const T = () => c.strings;
 // append that skips null/false (Element.append would print "null")
+// Draft markers: driven by config.draftMarkers so go-live needs no content edits.
+const draftPill = (what) => (c?.config?.draftMarkers ? h('span', { class: 'draft-pill', 'data-draft': what, title: `${what}: not final yet` }, c.config.draftMarkerText || 'Draft, pending Herman') : null);
 const ap = (el, ...k) => { el.append(...k.flat(Infinity).filter((x) => x !== null && x !== undefined && x !== false && x !== '')); return el; };
 const APP_VERSION = 'preview-1';
 
@@ -245,7 +247,7 @@ function viewDoor1(sub) {
   }
   if (sub === 'book') {
     document.title = `${d.buy.heading} | Steps`;
-    const row = (label, price, href, note) => h('div', { class: 'buy-row' }, h('div', {}, h('strong', { text: label }), h('div', { class: 'price', text: price }), note ? h('p', { class: 'help', text: note }) : null),
+    const row = (label, price, href, note) => h('div', { class: 'buy-row' }, h('div', {}, h('strong', { text: label }), h('div', { class: 'price' }, h('span', { text: price }), draftPill('Price')), note ? h('p', { class: 'help', text: note }) : null),
       ext(href, 'Buy on Amazon', { class: 'btn btn-primary', 'aria-label': `Buy the ${label.toLowerCase()} on Amazon, ${price}` }));
     page(h('h1', { class: 'h1', text: d.buy.heading }), h('div', { class: 'prose' }, paras(d.buy.body)),
       row(d.buy.paperback.label, d.buy.paperback.price, c.config.paperbackUrl),
@@ -253,7 +255,7 @@ function viewDoor1(sub) {
       h('section', { id: 'gift', 'aria-labelledby': 'gift-h', style: 'margin-top:28px' },
         h('h2', { id: 'gift-h', class: 'heading', text: d.buy.gift.label }),
         h('p', { class: 'prose', text: T().giftLine }),
-        h('div', { class: 'btn-row' }, ext(c.config.paperbackUrl, `Gift the paperback, ${d.buy.paperback.price}`, { class: 'btn btn-secondary' }), ext(c.config.kindleUrl, `Gift the Kindle edition, ${d.buy.kindle.price}`, { class: 'btn btn-secondary' }))),
+        draftPill('Prices'), h('div', { class: 'btn-row' }, ext(c.config.paperbackUrl, `Gift the paperback, ${d.buy.paperback.price}`, { class: 'btn btn-secondary' }), ext(c.config.kindleUrl, `Gift the Kindle edition, ${d.buy.kindle.price}`, { class: 'btn btn-secondary' }))),
       h('section', { style: 'margin-top:28px' }, notifyForm()));
     if (location.hash === '#gift') setTimeout(() => document.getElementById('gift')?.scrollIntoView(), 50);
     return;
@@ -505,7 +507,7 @@ async function viewStop(id, screen) {
     ap(body, quote, prose(), readCard(sc), ...verses(sc.verses));
     sc.prompts.forEach((pr, i) => ap(body, area('read', i, pr)));
     ap(body, ind, h('div', { class: 'btn-row' }, nextBtn(sc.cta || T().readIt, async () => { p.readAt = p.readAt || new Date().toISOString(); await db.saveProgress(p); await toNext(); })),
-      h('p', { class: 'quiet', style: 'margin-top:6px' }, ext(c.config.kindleUrl, "Don't have it? Kindle $4.99", { class: 'textlink' })));
+      h('p', { class: 'quiet', style: 'margin-top:6px' }, ext(c.config.kindleUrl, `Don't have it? ${c.door1.buy.kindle.label} ${c.door1.buy.kindle.price}`, { class: 'textlink' }), ' ', draftPill('Price')));
   } else if (screen === 'pulse') {
     ap(body, quote, ...verses(sc.verses), prose());
     sc.prompts.forEach((pr, i) => ap(body, area('pulse', i, pr)));
@@ -528,10 +530,10 @@ async function viewStop(id, screen) {
     });
     ap(body, ind, h('div', { class: 'btn-row' },
       link('/app/start/book#gift', T().giftCopy, { class: 'btn btn-secondary' }),
-      link('/app/share?card=walk', T().walkWithMe, { class: 'btn btn-secondary' }),
+      h('div', { class: 'with-pill' }, link('/app/share?card=walk', T().walkWithMe, { class: 'btn btn-secondary' }), draftPill('Walk with me invite')),
       nextBtn(sc.cta, () => toSendoff())));
   } else if (screen === 'pray') {
-    ap(body, quote, ...verses(sc.verses));
+    ap(body, draftPill('Prayer'), quote, ...verses(sc.verses));
     if (!p.answers.pray || Array.isArray(p.answers.pray)) p.answers.pray = { blanks: [], answers: [] };
     let bi = 0; const pr = h('div', { class: 'prose' });
     for (const para of String(sc.body).split(/\n\n+/)) {
@@ -736,7 +738,7 @@ async function viewShare() {
   };
   let current;
   async function draw() {
-    draftNote.replaceChildren(kind === 'walk' && !c.config.inviteCopyApproved && C.isPreviewHost() ? h('span', { class: 'draft-note', text: T().draftCopy }) : '');
+    draftNote.replaceChildren(kind !== 'walk' ? '' : draftPill('Walk with me invite') || (!c.config.inviteCopyApproved && C.isPreviewHost() ? h('span', { class: 'draft-note', text: T().draftCopy }) : ''));
     pubWrap.hidden = kind !== 'step'; anotherQuote.hidden = kind !== 'quote';
     const data = { ...cardData(), coverSrc: '/app/img/cover-480.webp' };
     current = await share.render(data, size);
@@ -781,7 +783,7 @@ function viewTestimony() {
     fld('t-name', L.first_name, h('input', { id: 't-name', type: 'text', name: 'first_name', autocomplete: 'given-name', maxlength: '80' }), !/optional/i.test(L.first_name.help || '')),
     fld('t-city', L.city, h('input', { id: 't-city', type: 'text', name: 'city', autocomplete: 'address-level2', maxlength: '80' }), true),
     fld('t-email', L.email, h('input', { id: 't-email', type: 'email', name: 'email', autocomplete: 'email', inputmode: 'email', maxlength: '120' }), !/optional/i.test(L.email.help || '')),
-    h('label', { class: 'check' }, h('input', { type: 'checkbox', name: 'share_ok', value: 'yes' }), h('span', { class: 'box', 'aria-hidden': 'true' }, s('svg', { viewBox: '0 0 24 24', width: '20', height: '20' }, s('path', { d: 'M5 12.5l4.5 4.5L19 7' }))), h('span', { text: L.share_ok.label })),
+    draftPill('Testimony consent wording'), h('label', { class: 'check' }, h('input', { type: 'checkbox', name: 'share_ok', value: 'yes' }), h('span', { class: 'box', 'aria-hidden': 'true' }, s('svg', { viewBox: '0 0 24 24', width: '20', height: '20' }, s('path', { d: 'M5 12.5l4.5 4.5L19 7' }))), h('span', { text: L.share_ok.label })),
     L.share_ok.help ? h('p', { class: 'help', text: L.share_ok.help }) : null,
     t.privacyNote ? h('p', { class: 'fineprint', text: t.privacyNote }) : null,
     h('button', { type: 'submit', class: 'btn btn-primary' }, t.submit || 'Send'), status);

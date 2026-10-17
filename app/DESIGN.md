@@ -36,3 +36,6 @@ Durations 90/160/240/420 ms, ease `cubic-bezier(0.16,1,0.3,1)`. Sheets rise; the
 
 ## Privacy
 Journal answers live only in IndexedDB on the device. They are never posted, synced, sent to analytics, or drawn on share cards. Export is a JSON download the user starts.
+
+## Draft markers (preview only)
+`config.json` `draftMarkers: true` shows a small amber-outlined pill ("Draft, pending Herman", text from `draftMarkerText`) on prices (Get the book, gift, the Read screen Kindle link), each Pray screen, the Walk with me button and share card, and the testimony consent. Set `draftMarkers` to `false` at go-live; no content edits needed. Crisis lines carry no marker.
