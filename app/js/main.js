@@ -271,7 +271,7 @@ function viewDoor1(sub) {
 }
 
 // Devotional and email signups happen on the website, never inside the app.
-const SIGNUP_URL = () => c.config.signupUrl || 'https://faithinmotionbook.com/#notify';
+const SIGNUP_URL = () => c.config.signupUrl || 'https://faithinmotionbook.com/#notify-form';
 function devoBlock() {
   return h('section', { id: 'devotionals', class: 'devo', 'aria-labelledby': 'devo-h', style: 'margin-top:28px' },
     h('h2', { id: 'devo-h', class: 'heading', text: c.door1.signup.heading }),
