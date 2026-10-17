@@ -33,7 +33,7 @@ const html = readFileSync(join(APP, 'index.html'), 'utf8');
   if (prodish && cfg.newWordingDraft !== false) { fail++; console.log(`FAIL newWordingDraft must be false on ${branch || 'a go-live build'} (Draft, pending Herman pills would ship)`); }
   const stat = ['index.html', 'groups/index.html'].filter((f) => readFileSync(join(APP, '..', f), 'utf8').includes('pending Herman'));
   if (prodish && stat.length) { fail++; console.log(`FAIL static Draft, pending Herman pill in ${stat.join(', ')} on ${branch}`); }
-  else if (!(prodish && cfg.newWordingDraft !== false)) console.log(prodish ? 'OK   newWordingDraft off (no Draft, pending Herman pills)' : 'OK   newWordingDraft on (preview only; check fails if this reaches steps-prod-golive)'); }
+  else if (!(prodish && cfg.newWordingDraft !== false)) console.log(prodish ? 'OK   newWordingDraft off (no Draft, pending Herman pills)' : `OK   newWordingDraft ${cfg.newWordingDraft ? 'on (preview only; check fails if this reaches steps-prod-golive)' : 'off'}`); }
 // small group leader guide (/groups/) must be rebuilt from content and dash-free
 try { execSync('node app/tools/build-leader.mjs --check', { cwd: join(APP, '..'), stdio: 'pipe' }); const g = readFileSync(join(APP, '..', 'groups', 'index.html'), 'utf8');
   if (bad.test(g)) { fail++; console.log('FAIL dashes in groups/index.html'); } else console.log('OK   groups/index.html rebuilt from content, no dashes'); }
