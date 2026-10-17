@@ -234,7 +234,7 @@ function viewDoor1(sub) {
       h('div', { class: 'btn-row' },
         link('/app/start/intro', d.sample.heading, { class: 'btn btn-secondary' }),
         link('/app/start/try', d.tryOne.heading, { class: 'btn btn-secondary' }),
-        link('/app/start/notify', d.signup.heading, { class: 'btn btn-secondary' })),
+        ext(SIGNUP_URL(), T().devoCta, { class: 'btn btn-secondary devo-link' })),
       routePreview());
   }
   if (sub === 'intro') {
@@ -261,39 +261,26 @@ function viewDoor1(sub) {
         h('h2', { id: 'gift-h', class: 'heading', text: d.buy.gift.label }),
         h('p', { class: 'prose', text: T().giftLine }),
         draftPill('Prices'), h('div', { class: 'btn-row' }, ext(c.config.paperbackUrl, `Gift the paperback, ${d.buy.paperback.price}`, { class: 'btn btn-secondary' }), ext(c.config.kindleUrl, `Gift the Kindle edition, ${d.buy.kindle.price}`, { class: 'btn btn-secondary' }))),
-      h('section', { style: 'margin-top:28px' }, notifyForm()));
-    if (location.hash === '#gift') setTimeout(() => document.getElementById('gift')?.scrollIntoView(), 50);
+      devoBlock());
+    if (location.hash === '#gift' || location.hash === '#devotionals') setTimeout(() => document.getElementById(location.hash.slice(1))?.scrollIntoView(), 50);
     return;
   }
-  if (sub === 'notify') { document.title = `${d.signup.heading} | Steps`; return page(notifyForm()); }
+  // Signups live on the website now. Old notify links land on the devotionals block.
+  if (sub === 'notify') return go('/app/start/book#devotionals', { replace: true });
   return go('/app/start', { replace: true });
 }
 
-function notifyForm() {
-  const d = c.door1;
-  const status = h('p', { class: 'help', role: 'status', 'aria-live': 'polite' });
-  const form = h('form', { name: 'notify', method: 'POST', 'data-netlify': 'true', 'netlify-honeypot': '_honey', novalidate: true },
-    h('input', { type: 'hidden', name: 'form-name', value: 'notify' }),
-    h('input', { type: 'hidden', name: 'source', value: 'app' }),
-    h('p', { class: 'honey', 'aria-hidden': 'true' }, h('label', {}, 'Leave empty ', h('input', { type: 'text', name: '_honey', tabindex: '-1', autocomplete: 'off' }))),
-    h('div', { class: 'field' }, h('label', { for: 'n-name' }, 'First name ', h('span', {}, '(optional)')), h('input', { id: 'n-name', type: 'text', name: 'name', autocomplete: 'given-name', maxlength: '80' })),
-    h('div', { class: 'field' }, h('label', { for: 'n-email' }, 'Email'), h('input', { id: 'n-email', type: 'email', name: 'email', autocomplete: 'email', inputmode: 'email', maxlength: '120', required: true })),
-    h('button', { type: 'submit', class: 'btn btn-primary' }, 'Send me the devotionals'),
-    status,
-    h('p', { class: 'fineprint', text: 'One short email a day during the Midday Steps, then occasional devotionals and book news. Reply to any email to unsubscribe.' }));
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = form.email.value.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { fieldError(form.email, 'Enter an email address like name@example.com.'); form.email.focus(); return; }
-    fieldError(form.email, null);
-    // PRIVACY: only these four fields are ever posted. No journal data.
-    const r = await forms.submit('notify', { name: form.elements.name.value.trim(), email, source: 'app', _honey: form._honey.value });
-    if (r === 'queued') { status.textContent = T().queued; return; }
-    form.replaceWith(h('div', { role: 'status' }, h('p', { style: 'font-family:var(--f-read);font-size:22px', text: T().notifySuccess }), link('/app/start/book', T().getBook, { class: 'btn btn-primary' })));
-    announce(T().notifySuccess);
-  });
-  return h('div', {}, h('h2', { class: 'heading', text: d.signup.heading }), h('p', { style: 'font-family:var(--f-read);font-size:20px', text: d.signup.body }), form);
+// Devotional and email signups happen on the website, never inside the app.
+const SIGNUP_URL = () => c.config.signupUrl || 'https://faithinmotionbook.com/#notify';
+function devoBlock() {
+  return h('section', { id: 'devotionals', class: 'devo', 'aria-labelledby': 'devo-h', style: 'margin-top:28px' },
+    h('h2', { id: 'devo-h', class: 'heading', text: c.door1.signup.heading }),
+    h('p', { style: 'font-family:var(--f-read);font-size:20px', text: T().devoLine }),
+    h('div', { class: 'btn-row' }, ext(SIGNUP_URL(), T().devoCta, { class: 'btn btn-secondary devo-link' })),
+    h('p', { class: 'fineprint', text: T().devoNote }));
 }
+// One quiet mention, used on the stop-complete screens and in About.
+const devoMention = (cls = 'quiet-light') => h('p', { class: `${cls} devo-mention`, style: 'margin-top:18px' }, `${T().devoAsk} `, ext(SIGNUP_URL(), T().devoLinkText, { class: 'textlink devo-link' }));
 
 // ---------- Today ----------
 async function currentStep() {
@@ -708,20 +695,20 @@ function viewSendoff() {
   if (done && d1) {
     fg = [h('p', { class: 'eyebrow', text: tf('stopDone', { n: done.order }) }), h('h1', { text: T().tryEnd }),
       next ? h('p', { class: 'lede', text: tf('nextNeedsBook', { n: next.order, title: next.title }) }) : null,
-      h('div', { class: 'btn-row' }, link('/app/start/book', T().getBook, { class: 'btn btn-primary' }), link('/app/start/notify', c.door1.signup.heading, { class: 'btn btn-secondary' })), back];
+      h('div', { class: 'btn-row' }, link('/app/start/book', T().getBook, { class: 'btn btn-primary' }), ext(SIGNUP_URL(), T().devoCta, { class: 'btn btn-secondary devo-link' })), back];
   } else if (done && next) {
     document.title = `${tf('stopDone', { n: done.order })} | Steps`;
     fg = [h('p', { class: 'eyebrow', text: tf('stopDone', { n: done.order }) }), h('h1', { text: T().stopDoneHeading }),
       h('p', { class: 'lede', text: T().stopDoneWarm }),
-      h('div', { class: 'btn-row' }, link(`/app/stop/${next.id}/read`, tf('goToStop', { n: next.order, title: next.title }), { class: 'btn btn-primary btn-next' })), back];
+      h('div', { class: 'btn-row' }, link(`/app/stop/${next.id}/read`, tf('goToStop', { n: next.order, title: next.title }), { class: 'btn btn-primary btn-next' })), devoMention(), back];
   } else if (done) {
     document.title = `${T().routeDone} | Steps`;
     fg = [h('p', { class: 'eyebrow', text: tf('stopDone', { n: done.order }) }), h('h1', { text: T().routeDone }),
       h('p', { class: 'lede', text: T().routeDoneWarm }),
-      h('div', { class: 'btn-row' }, link('/app/route', T().seeRoute, { class: 'btn btn-primary btn-next' })), back];
+      h('div', { class: 'btn-row' }, link('/app/route', T().seeRoute, { class: 'btn btn-primary btn-next' })), devoMention(), back];
   } else {
     fg = [h('h1', { text: d1 ? T().tryEnd : fromShare ? T().shareSendoff : T().sendoff }),
-      d1 ? h('div', { class: 'btn-row' }, link('/app/start/book', T().getBook, { class: 'btn btn-primary' }), link('/app/start/notify', c.door1.signup.heading, { class: 'btn btn-secondary' })) : null,
+      d1 ? h('div', { class: 'btn-row' }, link('/app/start/book', T().getBook, { class: 'btn btn-primary' }), ext(SIGNUP_URL(), T().devoCta, { class: 'btn btn-secondary devo-link' })) : null,
       !d1 && !fromShare && stop.screens[screen] ? h('p', { class: 'lede quiet-light', text: tf('upNextIn', { n: stop.order, screen: SCREEN_NAMES[screen] }) }) : null,
       back];
   }
@@ -996,6 +983,7 @@ function viewAbout() {
     h('div', { class: 'prose' }, paras(c.door1.about?.body || '')),
     h('p', { style: 'font-weight:600', text: T().aboutPrivacy }), draftPill('Privacy wording'),
     h('p', {}, link('/app/account', account.signedIn() ? 'Account and sync' : 'Sign in to use Steps on any device', { class: 'textlink' })),
+    h('h2', { class: 'heading', text: T().devoAboutHeading }), devoMention('prose'),
     h('h2', { class: 'heading', text: 'Scripture' }), h('p', { class: 'esv', text: c.esv }),
     h('h2', { class: 'heading', text: 'Photography' }),
     h('ul', { class: 'timeline' }, c.credits.map((cr) => h('li', { style: 'padding:10px 0' }, `${cr.photographer}, `, ext(cr.pageUrl, `Pexels photo ${cr.pexelsId}`), h('span', { class: 'meta', text: ` (${cr.slot}). ${cr.license}.` })))),
