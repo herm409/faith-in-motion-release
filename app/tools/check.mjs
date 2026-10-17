@@ -31,7 +31,9 @@ const html = readFileSync(join(APP, 'index.html'), 'utf8');
   let branch = ''; try { branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: join(APP, '..') }).toString().trim(); } catch {}
   const prodish = branch === 'steps-prod-golive'; // previews may show pills; the production branch never can
   if (prodish && cfg.newWordingDraft !== false) { fail++; console.log(`FAIL newWordingDraft must be false on ${branch || 'a go-live build'} (Draft, pending Herman pills would ship)`); }
-  else console.log(prodish ? 'OK   newWordingDraft off (no Draft, pending Herman pills)' : 'OK   newWordingDraft on (preview only; check fails if this reaches steps-prod-golive)'); }
+  const stat = ['index.html', 'groups/index.html'].filter((f) => readFileSync(join(APP, '..', f), 'utf8').includes('pending Herman'));
+  if (prodish && stat.length) { fail++; console.log(`FAIL static Draft, pending Herman pill in ${stat.join(', ')} on ${branch}`); }
+  else if (!(prodish && cfg.newWordingDraft !== false)) console.log(prodish ? 'OK   newWordingDraft off (no Draft, pending Herman pills)' : 'OK   newWordingDraft on (preview only; check fails if this reaches steps-prod-golive)'); }
 // small group leader guide (/groups/) must be rebuilt from content and dash-free
 try { execSync('node app/tools/build-leader.mjs --check', { cwd: join(APP, '..'), stdio: 'pipe' }); const g = readFileSync(join(APP, '..', 'groups', 'index.html'), 'utf8');
   if (bad.test(g)) { fail++; console.log('FAIL dashes in groups/index.html'); } else console.log('OK   groups/index.html rebuilt from content, no dashes'); }
@@ -42,11 +44,12 @@ try {
   const branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd }).toString().trim();
   // a38a74c = landing redesign Herman approved for production on 2026-10-17. Once a branch contains it,
   // the landing must match that approved version exactly (forms.html and thanks.html unchanged since 405f631).
+  // 03f75b9 = steps-next leader guide link, approved by Herman for production on 2026-10-17 6:51 PM CT (pill removed).
   // 9da0fc0 = steps-next preview: one added link to /groups/ in the Groups section (pending Herman; not on production).
   // 465da53 = social card (og/twitter) update to the landing, approved by Herman on 2026-10-17. Newest pin the branch contains wins.
   let APPROVED = 'a38a74c';
   let hasApproved = false;
-  for (const pin of ['9da0fc0', '465da53', 'a38a74c']) { try { execSync(`git merge-base --is-ancestor ${pin} HEAD`, { cwd }); APPROVED = pin; hasApproved = true; break; } catch {} }
+  for (const pin of ['03f75b9', '9da0fc0', '465da53', 'a38a74c']) { try { execSync(`git merge-base --is-ancestor ${pin} HEAD`, { cwd }); APPROVED = pin; hasApproved = true; break; } catch {} }
   if (hasApproved || branch === 'landing-motion') {
     const base = hasApproved ? APPROVED : 'steps-prod-golive';
     const drift = execSync(`git diff --name-only ${base} -- index.html styles.css script.js thanks.html`, { cwd }).toString().trim();
