@@ -1,5 +1,15 @@
 [
  {
+  "slot": "opener",
+  "kind": "video",
+  "pexelsId": 18089625,
+  "pageUrl": "https://www.pexels.com/video/a-person-walking-down-a-dirt-road-at-sunrise-18089625/",
+  "photographer": "Matthias Groeneveld",
+  "license": "Pexels License",
+  "licenseUrl": "https://www.pexels.com/license/",
+  "downloadedAt": "2026-10-17"
+ },
+ {
   "slot": "door1",
   "pexelsId": 1025112,
   "pageUrl": "https://www.pexels.com/photo/man-wearing-blue-hooded-sweater-1025112/",

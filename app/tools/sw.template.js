@@ -42,6 +42,20 @@ async function offlineImage(url) {
   if (hit) return hit;
   return new Response('<svg xmlns="http://www.w3.org/2000/svg" width="4" height="5"><rect width="4" height="5" fill="#192935" fill-opacity="0"/></svg>', { headers: { 'Content-Type': 'image/svg+xml' } });
 }
+// The opener film is precached whole. Safari asks for byte ranges, so answer those from the cached copy.
+async function videoFetch(req) {
+  const hit = await caches.match(new URL(req.url).pathname, { cacheName: SHELL });
+  if (!hit) return fetch(req);
+  const range = req.headers.get('range');
+  if (!range) return hit;
+  const buf = await hit.arrayBuffer(); const total = buf.byteLength;
+  const m = /bytes=(\d*)-(\d*)/.exec(range) || [];
+  let start = m[1] ? Number(m[1]) : 0; let end = m[2] ? Number(m[2]) : total - 1;
+  if (!m[1] && m[2]) { start = Math.max(0, total - Number(m[2])); end = total - 1; }
+  end = Math.min(end, total - 1);
+  if (start >= total || start > end) return new Response(null, { status: 416, headers: { 'Content-Range': `bytes */${total}` } });
+  return new Response(buf.slice(start, end + 1), { status: 206, headers: { 'Content-Type': 'video/mp4', 'Content-Range': `bytes ${start}-${end}/${total}`, 'Content-Length': String(end - start + 1), 'Accept-Ranges': 'bytes' } });
+}
 function timeout(ms) { return new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms)); }
 
 self.addEventListener('fetch', (e) => {
@@ -60,6 +74,7 @@ self.addEventListener('fetch', (e) => {
     e.respondWith((async () => { const c = await caches.open('fim-pdf'); const hit = await c.match(req); if (hit) return hit; const res = await fetch(req); if (res.ok) c.put(req, res.clone()); return res; })());
     return;
   }
+  if (url.pathname.startsWith('/app/img/') && url.pathname.endsWith('.mp4')) { e.respondWith(videoFetch(req).catch(() => Response.error())); return; }
   if (url.pathname.startsWith('/app/img/') && /\.(webp|png)$/.test(url.pathname)) { e.respondWith(imageFetch(req).catch(() => offlineImage(url))); return; }
   if (url.pathname.startsWith('/app/')) {
     e.respondWith((async () => {

@@ -195,12 +195,33 @@ async function render() {
 }
 
 // ---------- Fork ----------
+// Opening film: Pexels video 18089625 (Matthias Groeneveld), the same sunrise walk as the website hero.
+// Poster first; the clip loads after the screen paints, plays once and holds its last frame.
+// Reduced motion and Save-Data get the poster only. Both files are precached, so it works offline.
+const FILM = { poster: '/app/img/open-poster-540.webp', mp4: '/app/img/open-540.mp4' };
+const saveData = () => !!navigator.connection?.saveData;
+function openingFilm() {
+  const bg = h('div', { class: 'bg film' },
+    h('img', { class: 'film-poster', src: FILM.poster, width: 540, height: 960, alt: 'A walker on a dirt path heading into the sunrise', decoding: 'async', fetchpriority: 'high' }));
+  if (reducedMotion() || saveData()) return bg;
+  const v = h('video', { class: 'film-video', muted: true, playsinline: true, 'webkit-playsinline': true, preload: 'none', poster: FILM.poster, disablepictureinpicture: true, 'aria-hidden': 'true', tabindex: '-1' });
+  v.muted = true; v.defaultMuted = true; v.loop = false;
+  bg.append(v);
+  const start = () => {
+    if (!v.isConnected || reducedMotion()) return;
+    v.addEventListener('playing', () => bg.classList.add('is-playing'), { once: true });
+    v.src = FILM.mp4; v.preload = 'auto';
+    const pr = v.play(); if (pr) pr.catch(() => {}); // autoplay refused: the poster stays
+  };
+  requestAnimationFrame(() => setTimeout(start, 150));
+  return bg;
+}
 function viewFork() {
   document.title = 'Faith in Motion: Steps';
-  mount(h('main', { class: 'dark full' },
-    h('div', { class: 'bg' }, img(c.img.items.door1, { eager: true })),
+  mount(h('main', { class: 'dark full opener' },
+    openingFilm(),
     topbar(),
-    h('div', { class: 'fg' },
+    h('div', { class: 'fg rise' },
       h('h1', { class: 'lockup fork-lockup' }, h('b', {}, 'Faith '), h('i', {}, 'in Motion'), h('span', { class: 'steps' }, 'Steps')),
       h('p', { class: 'fork-hook', text: c.door1.hook }),
       h('div', { class: 'btn-row' },
@@ -439,13 +460,29 @@ async function viewRoute() {
 }
 
 // ---------- Stop screens ----------
+const RAIL_D = 'M8,18 C80,8 120,26 160,16 S260,8 312,16';
+const railX = (i) => 8 + i * (304 / 7);
+function lenAtX(path, x) { let lo = 0, hi = path.getTotalLength(); for (let k = 0; k < 18; k++) { const m = (lo + hi) / 2; if (path.getPointAtLength(m).x < x) lo = m; else hi = m; } return lo; }
+// The walked line draws from where the reader was in this stop to where they are now.
+function drawRail(walked, idx, stopId) {
+  if (!walked.isConnected) return;
+  const L = walked.getTotalLength(); const to = lenAtX(walked, railX(idx));
+  let prev = null; try { const r = JSON.parse(sessionStorage.getItem('fim-rail') || 'null'); if (r && r.stop === stopId) prev = r.idx; } catch {}
+  try { sessionStorage.setItem('fim-rail', JSON.stringify({ stop: stopId, idx })); } catch {}
+  walked.style.strokeDasharray = `${L} ${L}`; walked.style.strokeDashoffset = String(L - to);
+  if (reducedMotion() || prev === null || prev >= idx) return;
+  const from = lenAtX(walked, railX(prev));
+  walked.animate([{ strokeDashoffset: L - from }, { strokeDashoffset: L - to }], { duration: 900, easing: 'cubic-bezier(0.16,1,0.3,1)' });
+}
 function rail(stop, screen, p) {
   const svg = s('svg', { viewBox: '0 0 320 28', preserveAspectRatio: 'none', 'aria-hidden': 'true' });
-  svg.append(s('path', { d: 'M8,18 C80,8 120,26 160,16 S260,8 312,16', class: 'path' }));
+  const walked = s('path', { d: RAIL_D, class: 'walked' });
+  svg.append(s('path', { d: RAIL_D, class: 'path' }), walked);
+  requestAnimationFrame(() => drawRail(walked, SCREENS.indexOf(screen), stop.id));
   const nav = h('nav', { class: 'rail', 'aria-label': 'Waypoints in this stop' });
   const links = h('div', { style: 'position:relative;flex:1;min-width:0;height:28px' }, svg);
   SCREENS.forEach((name, i) => {
-    const x = 8 + i * (304 / 7); const now = name === screen; const done = !!p.visited?.[name] && !now;
+    const x = railX(i); const now = name === screen; const done = !!p.visited?.[name] && !now;
     svg.append(s('path', { d: `M${(x - 6).toFixed(1)},22 L${x.toFixed(1)},8 L${(x + 6).toFixed(1)},22 Z`, class: `tick${done ? ' done' : ''}${now ? ' now' : ''}` }));
     ap(links, h('a', { href: `/app/stop/${stop.id}/${name}`, 'data-link': true, 'aria-label': `${SCREEN_NAMES[name]}${done ? ', visited' : ''}`, 'aria-current': now ? 'step' : null,
       style: `position:absolute;top:-8px;left:calc(${((x / 320) * 100).toFixed(2)}% - 18px);width:36px;height:44px` }));
@@ -712,8 +749,9 @@ function viewSendoff() {
       !d1 && !fromShare && stop.screens[screen] ? h('p', { class: 'lede quiet-light', text: tf('upNextIn', { n: stop.order, screen: SCREEN_NAMES[screen] }) }) : null,
       back];
   }
-  mount(h('main', { class: 'dark full sendoff' }, h('div', { class: 'bg' }, img(stopImg(next || stop) || c.img.items.door1, { eager: true, altOverride: '' })), topbar(),
-    h('div', { class: 'fg' }, ...fg)));
+  mount(h('main', { class: `dark full sendoff${done ? ' stop-complete' : ''}` },
+    h('div', { class: 'bg' }, img(stopImg(next || stop) || c.img.items.door1, { eager: true, altOverride: '' }), done && !reducedMotion() ? h('div', { class: 'glint', 'aria-hidden': 'true' }) : null), topbar(),
+    h('div', { class: 'fg rise' }, ...fg)));
   document.querySelector('.btn-next')?.focus({ preventScroll: true });
 }
 
@@ -986,7 +1024,7 @@ function viewAbout() {
     h('h2', { class: 'heading', text: T().devoAboutHeading }), devoMention('prose'),
     h('h2', { class: 'heading', text: 'Scripture' }), h('p', { class: 'esv', text: c.esv }),
     h('h2', { class: 'heading', text: 'Photography' }),
-    h('ul', { class: 'timeline' }, c.credits.map((cr) => h('li', { style: 'padding:10px 0' }, `${cr.photographer}, `, ext(cr.pageUrl, `Pexels photo ${cr.pexelsId}`), h('span', { class: 'meta', text: ` (${cr.slot}). ${cr.license}.` })))),
+    h('ul', { class: 'timeline' }, c.credits.map((cr) => h('li', { style: 'padding:10px 0' }, `${cr.photographer}, `, ext(cr.pageUrl, `Pexels ${cr.kind === 'video' ? 'video' : 'photo'} ${cr.pexelsId}`), h('span', { class: 'meta', text: ` (${cr.slot}). ${cr.license}.` })))),
     h('p', { class: 'help' }, ext('https://www.pexels.com/license/', 'Pexels License')),
     h('h2', { class: 'heading', text: 'Version' }),
     h('p', { class: 'help', text: `App ${APP_VERSION}. Content ${c.version?.hash || ''} (${c.manifest.version || ''}).` }),

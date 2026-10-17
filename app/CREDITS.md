@@ -6,6 +6,7 @@ All photos are from Pexels under the Pexels License (https://www.pexels.com/lice
 
 | Slot | Photographer | Pexels ID | Page | Downloaded |
 |---|---|---|---|---|
+| opener (video) | Matthias Groeneveld | 18089625 | https://www.pexels.com/video/a-person-walking-down-a-dirt-road-at-sunrise-18089625/ | 2026-10-17 |
 | door1 | Hassan OUAJBIR | 1025112 | https://www.pexels.com/photo/man-wearing-blue-hooded-sweater-1025112/ | 2026-10-17 |
 | s0 | Trace Hudson | 6152559 | https://www.pexels.com/photo/male-traveler-standing-on-top-of-mountain-and-admiring-landscape-6152559/ | 2026-10-17 |
 | s1 | Artem Korsakov | 10952326 | https://www.pexels.com/photo/back-view-of-a-man-walking-on-countryside-road-10952326/ | 2026-10-17 |
@@ -22,6 +23,8 @@ All photos are from Pexels under the Pexels License (https://www.pexels.com/lice
 | share-water | Mădălina Vlăduță | 5085466 | https://www.pexels.com/photo/sunrise-over-sea-shore-5085466/ | 2026-10-17 |
 | share-road | Tom Fisk | 9065110 | https://www.pexels.com/photo/an-empty-asphalt-road-9065110/ | 2026-10-17 |
 | share-walk | josh_ dago__ | 30687348 | https://www.pexels.com/photo/two-people-walking-down-a-sunlit-path-30687348/ | 2026-10-17 |
+
+The opener (video) is an 8 second cut (0:09 to 0:17) of the same Pexels video as the website hero, reframed tighter for phones so the walker sits above the text, lightly graded and encoded as H.264 MP4 (app/img/open-540.mp4). The poster is its first frame.
 
 ## Type
 

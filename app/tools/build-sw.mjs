@@ -7,7 +7,7 @@ const rel = (p) => '/app/' + path.relative(APP, p).split(path.sep).join('/');
 const files = [
   path.join(APP, 'index.html'), path.join(APP, 'app.css'), path.join(APP, 'config.json'), path.join(APP, 'manifest.webmanifest'),
   ...walk(path.join(APP, 'js')), ...walk(path.join(APP, 'fonts')), ...walk(path.join(APP, 'content')),
-  ...['manifest.json', 'credits.json', 'icon-192.png', 'icon-512.png', 'icon-512-maskable.png', 'icon-180.png', 'cover-480.webp', 'grain.webp'].map((f) => path.join(APP, 'img', f)),
+  ...['manifest.json', 'credits.json', 'icon-192.png', 'icon-512.png', 'icon-512-maskable.png', 'icon-180.png', 'cover-480.webp', 'grain.webp', 'open-poster-540.webp', 'open-540.mp4'].map((f) => path.join(APP, 'img', f)),
 ];
 // Heroes: only the first-run plate and the current + next stop's 640w (stop 0 and stop 1 on first visit).
 const content = JSON.parse(fs.readFileSync(path.join(APP, 'content', 'manifest.json'), 'utf8'));

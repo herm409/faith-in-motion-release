@@ -176,6 +176,11 @@ def main():
                         "downloadedAt": today})
 
     json.dump(manifest, open(os.path.join(IMG, "manifest.json"), "w"), indent=1, ensure_ascii=False)
+    # Opening film (app/img/open-540.mp4 + open-poster-540.webp), cut from the same Pexels video as the website hero.
+    credits.insert(0, {"slot": "opener", "kind": "video", "pexelsId": 18089625,
+                       "pageUrl": "https://www.pexels.com/video/a-person-walking-down-a-dirt-road-at-sunrise-18089625/",
+                       "photographer": "Matthias Groeneveld", "license": "Pexels License",
+                       "licenseUrl": "https://www.pexels.com/license/", "downloadedAt": "2026-10-17"})
     json.dump(credits, open(os.path.join(IMG, "credits.json"), "w"), indent=1, ensure_ascii=False)
 
     lines = ["# Credits, Faith in Motion: Steps", "",
