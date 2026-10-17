@@ -32,9 +32,10 @@ try {
   const branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd }).toString().trim();
   // a38a74c = landing redesign Herman approved for production on 2026-10-17. Once a branch contains it,
   // the landing must match that approved version exactly (forms.html and thanks.html unchanged since 405f631).
-  const APPROVED = 'a38a74c';
+  // 465da53 = social card (og/twitter) update to the landing, approved by Herman on 2026-10-17. Newest pin the branch contains wins.
+  let APPROVED = 'a38a74c';
   let hasApproved = false;
-  try { execSync(`git merge-base --is-ancestor ${APPROVED} HEAD`, { cwd }); hasApproved = true; } catch {}
+  for (const pin of ['465da53', 'a38a74c']) { try { execSync(`git merge-base --is-ancestor ${pin} HEAD`, { cwd }); APPROVED = pin; hasApproved = true; break; } catch {} }
   if (hasApproved || branch === 'landing-motion') {
     const base = hasApproved ? APPROVED : 'steps-prod-golive';
     const drift = execSync(`git diff --name-only ${base} -- index.html styles.css script.js thanks.html`, { cwd }).toString().trim();
