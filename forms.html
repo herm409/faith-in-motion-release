@@ -6,12 +6,24 @@
   <title>Forms | Faith in Motion</title>
 </head>
 <body>
-  <!-- Static copy of the signup form so Netlify Forms detection always finds "notify" (rev 2026-09-30b). Not linked from the site. -->
+  <!-- Static copies of the site forms so Netlify Forms detection always finds them (rev 2026-10-17). "notify" is the signup used by the landing page and the Steps app (source field added). "testimony" is the Steps app testimony form. Not linked from the site. -->
   <form name="notify" method="POST" netlify netlify-honeypot="_honey" hidden>
     <input type="hidden" name="form-name" value="notify" />
     <input type="text" name="_honey" />
     <input type="text" name="name" />
     <input type="email" name="email" />
+    <input type="hidden" name="source" />
+  </form>
+  <form name="testimony" method="POST" netlify netlify-honeypot="_honey" hidden>
+    <input type="hidden" name="form-name" value="testimony" />
+    <input type="text" name="_honey" />
+    <textarea name="testimony"></textarea>
+    <input type="text" name="first_name" />
+    <input type="text" name="city" />
+    <input type="email" name="email" />
+    <input type="checkbox" name="share_ok" value="yes" />
+    <input type="hidden" name="stop" />
+    <input type="hidden" name="source" />
   </form>
 </body>
 </html>

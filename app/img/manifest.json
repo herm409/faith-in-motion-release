@@ -1,0 +1,213 @@
+{
+ "grade": "lamplight-ridge-v1",
+ "items": {
+  "door1": {
+   "slot": "door1",
+   "pexelsId": 8931865,
+   "focal": "24% 60%",
+   "alt": "A lone walker with a backpack crossing a ridge in golden light",
+   "width": 1080,
+   "height": 1350,
+   "lqip": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAABwBACdASoYAB4APtleo02oJaMjN/qoAQAbCUAAC3TY7LJ3vIMxDL3Eh/gYAAD+7fgQPDxv9x/fXLp43/pLkyAoQmpoyhguK3l7lg0kbkQh1tppbyHOodK91RJGWJDtttHbfuTdyVzlBiAAAAA=",
+   "src": {
+    "1080": "/app/img/door1-1080.webp",
+    "640": "/app/img/door1-640.webp"
+   }
+  },
+  "s0": {
+   "slot": "s00",
+   "pexelsId": 6152559,
+   "focal": "40% 60%",
+   "alt": "A man standing still at a cliff edge above misty mountains at dawn",
+   "width": 1080,
+   "height": 1350,
+   "lqip": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAADwBACdASoYAB4APu1kp02ppaOiMBgMATAdiWcAxNgQ6wDYwvNeyOvqrZ01nHFCUNgA8pkYSb0d0D97KdtJIrgnLpqXSlhQ50eNva3ACljQDD9DlOKY8/f9GgAAAA==",
+   "src": {
+    "1080": "/app/img/s0-1080.webp",
+    "640": "/app/img/s0-640.webp"
+   }
+  },
+  "s1": {
+   "slot": "s01",
+   "pexelsId": 13471852,
+   "focal": "50% 70%",
+   "alt": "A figure walking a dirt path toward the sunrise between bare trees",
+   "width": 1080,
+   "height": 1350,
+   "lqip": "data:image/webp;base64,UklGRnwAAABXRUJQVlA4IHAAAAAQBQCdASoYAB4APu1qsFAppiSiqAqpMB2JZQDE2BDDom2AfFaRlVU3a2HMHv0GXaLAAPemG/nqzfJljEUw87LqnrP+EP1gieHFswrKWoQw/j2m9YuavIJB5F/+1D/EyZoyNYLRkwSxxPNgZ0I/gAAA",
+   "src": {
+    "1080": "/app/img/s1-1080.webp",
+    "640": "/app/img/s1-640.webp"
+   }
+  },
+  "s2": {
+   "slot": "s02",
+   "pexelsId": 3760930,
+   "focal": "50% 35%",
+   "alt": "A craftsman bent over his work in a warm, dim workshop",
+   "width": 1080,
+   "height": 1350,
+   "lqip": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAAAwBQCdASoYAB4APuFSpE2opCOiN/qoARAcCWcAy+AYKnNfVojsXqGN2IuSsrG97yM4AAD+6PDrHP5JWNoISC1iq2KmlQ3G1kB8qxO/CLWEk3C4Q69niz/8W4SAAA==",
+   "src": {
+    "1080": "/app/img/s2-1080.webp",
+    "640": "/app/img/s2-640.webp"
+   }
+  },
+  "s3": {
+   "slot": "s03",
+   "pexelsId": 1301856,
+   "focal": "35% 40%",
+   "alt": "A garden shovel full of dark soil",
+   "width": 1080,
+   "height": 1350,
+   "lqip": "data:image/webp;base64,UklGRnoAAABXRUJQVlA4IG4AAADwBACdASoYAB4APu1iqE2ppaOiMAgBMB2JZwDAKCG/OQxfL8WUC9ROFisV67vZgAAA/syt14u4WMKPe6DAZ6u0fXDObmotChm/+c+mkb5D3heXTG0agxigva3VHSmwa6bej5nyUFvta6Jw3EisAA==",
+   "src": {
+    "1080": "/app/img/s3-1080.webp",
+    "640": "/app/img/s3-640.webp"
+   }
+  },
+  "s4": {
+   "slot": "s04",
+   "pexelsId": 35815220,
+   "focal": "50% 50%",
+   "alt": "Round loaves of bread in a wicker basket",
+   "width": 1080,
+   "height": 1350,
+   "lqip": "data:image/webp;base64,UklGRpYAAABXRUJQVlA4IIoAAADQBACdASoYAB4APu1yr1IppyQiqAgBMB2JZQC06Asu393GMArv1SM8Udimdac8AAD+vJV+JwFva4QjzxCGEZ+nPRYmFfGTw0ZaXigoN8OXS8xdbf6sJEnxVK8mn8KAx+MsIqVoyGhpv2Lex0ex0XGtS9R051+vt0Qz/UqzEDtJCHdoFOEIo0wAAAA=",
+   "src": {
+    "1080": "/app/img/s4-1080.webp",
+    "640": "/app/img/s4-640.webp"
+   }
+  },
+  "s5": {
+   "slot": "s05",
+   "pexelsId": 16183797,
+   "focal": "50% 65%",
+   "alt": "A country road with long tree shadows at sunrise",
+   "width": 1080,
+   "height": 1350,
+   "lqip": "data:image/webp;base64,UklGRmoAAABXRUJQVlA4IF4AAADwBACdASoYAB4APu1oqlAppaOiqA1RMB2JYwDI1AyWZaJ0tLVEvqpmRoxbEqTdO8AA/o03Wh7BduU9GoB22+iu0+LvuI4PDCH0e8Q7rnKj2QUIlosOH/gb/IE6AAAA",
+   "src": {
+    "1080": "/app/img/s5-1080.webp",
+    "640": "/app/img/s5-640.webp"
+   }
+  },
+  "s6": {
+   "slot": "s06",
+   "pexelsId": 8817520,
+   "focal": "45% 40%",
+   "alt": "A young man praying with his eyes closed",
+   "width": 1080,
+   "height": 1350,
+   "lqip": "data:image/webp;base64,UklGRpAAAABXRUJQVlA4IIQAAAAwBgCdASoYAB4APu1uq1CppqOiqAqpMB2JZQDAG1yA3nyVOF4G1/9SqGwTtqZpibo/UTWrMd4YyewAAP5rMvuWg0x6S0/JgNAevgEeBrNUdToEkr4sYB9gIJchQ8DjUXJTE0DUHYxokqR8acipAB3jScJLreJyhBk7jR8WdfgzIwZZAAA=",
+   "src": {
+    "1080": "/app/img/s6-1080.webp",
+    "640": "/app/img/s6-640.webp"
+   }
+  },
+  "s7": {
+   "slot": "s07",
+   "pexelsId": 7616800,
+   "focal": "55% 45%",
+   "alt": "A woman writing in a notebook with a cup of coffee at a sunny desk",
+   "width": 1080,
+   "height": 1350,
+   "lqip": "data:image/webp;base64,UklGRpoAAABXRUJQVlA4II4AAABwBQCdASoYAB4APu1gq1AppKOisBgIATAdiUAVJHgQVz2I6L4GV2EywRtbfzztn8kfBnUAAP5mCt2L9g/2YTzzU2DsXKoEdzMMRJT6WohzdfdZrythvjdEq+8FPNadeHhl8VkuTQmAOcGdbTjjTeksfjCKuZJQnsv0dtfKzIGIWg9yP9dlY4DiqTWK7eAA",
+   "src": {
+    "1080": "/app/img/s7-1080.webp",
+    "640": "/app/img/s7-640.webp"
+   }
+  },
+  "s8": {
+   "slot": "s08",
+   "pexelsId": 14437769,
+   "focal": "50% 40%",
+   "alt": "A man climbing rough stone steps between rocks",
+   "width": 1080,
+   "height": 1350,
+   "lqip": "data:image/webp;base64,UklGRmAAAABXRUJQVlA4IFQAAABQBACdASoYAB4APtFWok2oJKMiN+gBABoJZQDKADJL21ivIu69ckwb94gAAP7t+A4vsdKDYnQ0Xyp7maS2Pgql4g2WBjg2P8IVBfhnWhdqcj/AAAA=",
+   "src": {
+    "1080": "/app/img/s8-1080.webp",
+    "640": "/app/img/s8-640.webp"
+   }
+  },
+  "s9": {
+   "slot": "s09",
+   "pexelsId": 32478360,
+   "focal": "50% 60%",
+   "alt": "One person walking a foggy tree-lined road",
+   "width": 1080,
+   "height": 1350,
+   "lqip": "data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAAAQBQCdASoYAB4APu1usFKppiSiqAgBMB2JZQDCgA9FKeP4BSp6lYvNf7sqUQzza0AAAPzvAjLSWdMXaQ7pxepvG51fkDaJgiKb+cTx6CqtBdueruBjd0uzlCsWHTnO4l72ZMPUhAAAAA==",
+   "src": {
+    "1080": "/app/img/s9-1080.webp",
+    "640": "/app/img/s9-640.webp"
+   }
+  },
+  "s10": {
+   "slot": "s10",
+   "pexelsId": 15182672,
+   "focal": "50% 50%",
+   "alt": "Weathered hands holding soil and seeds",
+   "width": 1080,
+   "height": 1350,
+   "lqip": "data:image/webp;base64,UklGRowAAABXRUJQVlA4IIAAAACwBQCdASoYAB4APu1oq06ppiOiMBgIATAdiWUAwoA0g11r/5HdZ3YjPCHmcyxHcMpCOfQ3WAAA/s1oswZ6c9xWve3VKJRqStFOHHQhUUat4bGbhR8CVJUD5HIENk7DE+Tfs3pfEBHkBStxga51LaEq8mvf7KrlMcKab5xYVdAAAA==",
+   "src": {
+    "1080": "/app/img/s10-1080.webp",
+    "640": "/app/img/s10-640.webp"
+   }
+  },
+  "s11": {
+   "slot": "s11",
+   "pexelsId": 5171139,
+   "focal": "50% 60%",
+   "alt": "A couple walking arm in arm down a sunlit forest path",
+   "width": 1080,
+   "height": 1350,
+   "lqip": "data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAABwBACdASoYAB4APu1srFCppiQiqAqpMB2JZQAAIc9ZDXos2FgWgBEX10NPAAD9IBo0bqyY+A/cLernswCkj9B4fsHy3/qDLuvdanawQOl5eUhL93DC49Vyuu0W7rp64HSRh5sutVmAAA==",
+   "src": {
+    "1080": "/app/img/s11-1080.webp",
+    "640": "/app/img/s11-640.webp"
+   }
+  },
+  "share-water": {
+   "slot": "share-water",
+   "pexelsId": 5085466,
+   "focal": "50% 60%",
+   "alt": "",
+   "width": 1080,
+   "height": 1920,
+   "lqip": "data:image/webp;base64,UklGRogAAABXRUJQVlA4IHwAAABQBQCdASoYACsAPuFUpU2opCOiNVv4ARAcCWMArhwhX6uOKxfqVJXY4RkuzCcUHTt3koAA/t5oF6OsMIxIS5NrOE6AvMgWOIWofUXEUiyDO7FNM03XwMmGShe1AYw9fZpB4f6uSbhnnZCCZIFfz2tFsV+okpSra+TAQAAA",
+   "src": {
+    "1080": "/app/img/share-water-1080.webp",
+    "640": "/app/img/share-water-640.webp"
+   }
+  },
+  "share-road": {
+   "slot": "share-road",
+   "pexelsId": 9065110,
+   "focal": "55% 55%",
+   "alt": "",
+   "width": 1080,
+   "height": 1920,
+   "lqip": "data:image/webp;base64,UklGRmwAAABXRUJQVlA4IGAAAADwBACdASoYACsAPu1cqU+ppKOiMBqoATAdiWcAvVgFegpdGMFEqtQmaYP7UOxDuiwA6HQkEKdj4f0hex5wFGpVc0BHXbtRpwVZWk2+epQsx3dLfAeamFaT5KIGiL5CAAA=",
+   "src": {
+    "1080": "/app/img/share-road-1080.webp",
+    "640": "/app/img/share-road-640.webp"
+   }
+  },
+  "share-walk": {
+   "slot": "share-walk",
+   "pexelsId": 30687348,
+   "focal": "50% 55%",
+   "alt": "",
+   "width": 1080,
+   "height": 1920,
+   "lqip": "data:image/webp;base64,UklGRqQAAABXRUJQVlA4IJgAAABwBgCdASoYACsAPu1uqVEppqOiqrgKATAdiWUAuDAIZVqrToMFrhI2mxyagNPyOph8lQzCnLsAjodinMAA/qg2c25P2kWRvo8PqQb0EFcRn7JTE3a0wpWzOTpta3Ou1ofi7uyNJbH0EhTFMNQkGLQPw8Mf8gc+7UObCj3yS9g0Lm1X0wjyklMpUuP2riydWbGMJMdXeiZAAA==",
+   "src": {
+    "1080": "/app/img/share-walk-1080.webp",
+    "640": "/app/img/share-walk-640.webp"
+   }
+  }
+ }
+}

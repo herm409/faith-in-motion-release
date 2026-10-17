@@ -1,0 +1,12 @@
+{
+  "inviteCopyApproved": false,
+  "introPdfOffered": true,
+  "formsMode": "live",
+  "_formsModeNote": "live posts to Netlify Forms at '/'. stub keeps submissions in the outbox and never sends (used for local tests).",
+  "kindleUrl": "https://www.amazon.com/dp/B0HKV9P1FQ",
+  "paperbackUrl": "https://www.amazon.com/Faith-Motion-Stepping-Into-Gift/dp/B0HL396MH6",
+  "reviewKindleUrl": "https://www.amazon.com/review/create-review?asin=B0HKV9P1FQ",
+  "reviewPaperbackUrl": "https://www.amazon.com/review/create-review?asin=B0HL396MH6",
+  "appUrl": "https://faithinmotionbook.com/app/",
+  "introPdf": "/assets/faith-in-motion-introduction-sample.pdf"
+}
