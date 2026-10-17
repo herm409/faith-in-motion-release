@@ -1,6 +1,6 @@
 // Loads app/content/* (synced from Author Desk) and app/config.json.
 const DEFAULT_STRINGS = {
-  haveBook: 'I have the book', noBook: "I don't have the book yet", noAccount: 'Your journal answers stay on this phone. No account.',
+  haveBook: 'I have the book', noBook: "I don't have the book yet", noAccount: 'Your journal is private to you. If you sign in, it is encrypted and synced so you can use it on any device. It is never shown to anyone else, shared, or sold.',
   getBook: 'Get the book', iHaveIt: 'I have it', readIt: "I've read it", saved: 'Saved on this phone', tookStep: 'I took my step',
   newDate: 'I need a new date', addCalendar: 'Add to my calendar', textPartner: 'Text my partner', giftCopy: 'Gift a copy',
   walkWithMe: 'Walk with me', hardDay: 'Hard day?', sendoff: 'Close the app and go take your step.', backToday: 'Back to today',
@@ -16,7 +16,7 @@ const DEFAULT_STRINGS = {
   hardDayDefaultRead: "Read Chapter 8, A Pastoral Word to the Sincerely Stuck, or Chapter 10, A Pastoral Word to the 'One-Talent' Heart.",
   iosInstall: 'Install Steps on your iPhone: tap the Share button, then Add to Home Screen.',
   dueToday: 'Your step is due today.', inMotion: 'In motion this week', updated: "Updated. Reload when you're ready.",
-  aboutPrivacy: 'No account. Your journal answers stay on this phone.',
+  aboutPrivacy: 'Your journal is private to you. If you sign in, it is encrypted and synced so you can use it on any device. It is never shown to anyone else, shared, or sold.',
   byWhen: 'I will do it by:', newDateLabel: 'Pick a new date within 3 days.',
   testimonyThanks: 'Thank you. Herman reads every one.', amazonAlso: 'Also post this as an Amazon review',
   notifySuccess: "You're on the list. The first Midday Step arrives soon.", draftCopy: 'Draft copy',

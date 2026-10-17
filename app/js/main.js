@@ -7,6 +7,7 @@ import * as C from './content.js';
 import * as forms from './forms.js';
 import * as ics from './ics.js';
 import * as share from './share.js';
+import * as account from './account.js';
 
 const { SCREENS, SCREEN_NAMES } = C;
 let c; // content
@@ -138,6 +139,7 @@ function openMenu() {
     item('share', 'Share a card', '/app/share'),
     item('chat', 'Send a testimony', '/app/testimony'),
     !isStandalone() ? h('li', {}, h('button', { type: 'button', onclick: () => { closeSheet(true); offerInstall(true); } }, icon('phone'), 'Install the app')) : null,
+    item('phone', account.signedIn() ? 'Account and sync' : 'Sign in to sync', '/app/account'),
     item('archive', 'Backup and restore', '/app/backup'),
     item('info', 'About', '/app/about'),
     have ? null : item('download', T().getBook, '/app/start/book'));
@@ -186,6 +188,7 @@ async function render() {
   if (a === 'testimony') return viewTestimony();
   if (a === 'backup') return viewBackup();
   if (a === 'about') return viewAbout();
+  if (a === 'account') return viewAccount(b);
   if (a === 'sendoff') return viewSendoff();
   return go('/app/', { replace: true });
 }
@@ -202,7 +205,7 @@ function viewFork() {
       h('div', { class: 'btn-row' },
         h('button', { class: 'btn btn-primary', type: 'button', onclick: async () => { prof = await db.saveProfile({ door: 'have' }); go('/app/'); } }, T().haveBook),
         h('button', { class: 'btn btn-secondary', type: 'button', onclick: async () => { prof = await db.saveProfile({ door: 'none' }); go('/app/start'); } }, T().noBook)),
-      h('p', { class: 'fineline', text: T().noAccount }))));
+      h('p', { class: 'fineline', text: T().noAccount }), draftPill('Privacy wording'))));
 }
 
 // ---------- Door 1 ----------
@@ -843,7 +846,7 @@ function viewBackup() {
   });
   mount(h('main', { class: 'page' }, topbar({ back: '/app/' }), h('div', { class: 'sheet' }, h('div', { class: 'sheet-inner' },
     h('h1', { class: 'h1', text: 'Backup and restore' }),
-    h('p', { style: 'font-family:var(--f-read);font-size:21px', text: 'Your answers live only in this browser on this phone. A backup is a file you save yourself. Nothing is uploaded.' }),
+    h('p', { style: 'font-family:var(--f-read);font-size:21px', text: account.signedIn() ? "You're signed in, so your answers are encrypted and synced to your account. A backup is a file you save yourself, kept wherever you put it." : 'Your answers live in this browser on this phone unless you sign in to sync. A backup is a file you save yourself. Nothing is uploaded.' }),
     h('div', { class: 'btn-row' }, h('button', { class: 'btn btn-primary', type: 'button', onclick: doExport }, T().exportBtn)),
     h('div', { class: 'field', style: 'margin-top:28px' }, h('label', { for: 'bk-file', text: T().importBtn }), fileIn), status))));
 }
@@ -864,13 +867,90 @@ function validateBackup(j) {
   return p;
 }
 
+
+// ---------- Account and sync (optional) ----------
+const fmtTime = (iso) => (iso ? new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'not yet');
+const AUTH_ERRORS = { 'rate-limited': 'Too many tries. Wait a few minutes, then try again.', 'bad-email': 'Enter an email address like name@example.com.',
+  'bad-code': 'Enter the 6-digit code from the email.', INVALID_OTP: "That code didn't work. Check the email and try again.", OTP_EXPIRED: 'That code expired. Ask for a new one.',
+  TOO_MANY_ATTEMPTS: 'Too many tries with that code. Ask for a new one.', TOO_MANY_REQUESTS: 'Too many tries. Wait a few minutes, then try again.', 'http-429': 'Too many tries. Wait a few minutes, then try again.' };
+const authMsg = (e) => AUTH_ERRORS[e.message] || (navigator.onLine ? "Something went wrong. Try again in a minute." : "You're offline. Connect to sign in.");
+function viewAccount() {
+  document.title = 'Account and sync | Steps';
+  const st = account.state();
+  const sheet = h('div', { class: 'sheet-inner' });
+  mount(h('main', { class: 'page' }, topbar({ back: '/app/' }), h('div', { class: 'sheet' }, sheet)));
+  const privacy = [h('p', { class: 'acct-privacy', text: T().noAccount }), draftPill('Privacy wording')];
+  if (!st?.userId || st.needsSignIn) {
+    const status = h('p', { class: 'help', role: 'status', 'aria-live': 'polite' });
+    const email = h('input', { id: 'acct-email', type: 'email', name: 'email', autocomplete: 'email', inputmode: 'email', maxlength: '120', value: st?.email || '' });
+    const code = h('input', { id: 'acct-code', type: 'text', name: 'code', inputmode: 'numeric', autocomplete: 'one-time-code', maxlength: '8', pattern: '[0-9]*' });
+    const codeBox = h('div', { hidden: true },
+      h('div', { class: 'field' }, h('label', { for: 'acct-code', text: 'Code from the email' }), code, h('p', { class: 'help', text: "It can take a minute to arrive. Check spam if you don't see it." })),
+      h('div', { class: 'btn-row' }, h('button', { type: 'submit', class: 'btn btn-primary', 'data-step': 'verify' }, 'Sign in'),
+        h('button', { type: 'button', class: 'btn btn-secondary', onclick: () => send(true) }, 'Send a new code')));
+    const sendBtn = h('button', { type: 'submit', class: 'btn btn-primary', 'data-step': 'send' }, 'Email me a code');
+    let phase = 'send';
+    async function send(resend) {
+      const v = email.value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { fieldError(email, 'Enter an email address like name@example.com.'); email.focus(); return; }
+      fieldError(email, null); status.textContent = 'Sending...';
+      try { await account.sendCode(v); phase = 'verify'; codeBox.hidden = false; sendBtn.hidden = true; status.textContent = `We sent a code to ${v}.`; code.focus(); }
+      catch (e) { status.textContent = authMsg(e); }
+    }
+    const form = h('form', { class: 'acct-form', novalidate: true },
+      h('div', { class: 'field' }, h('label', { for: 'acct-email', text: 'Your email' }), email),
+      h('div', { class: 'btn-row' }, sendBtn), codeBox, status);
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (phase === 'send') return send();
+      const v = code.value.replace(/\s/g, '');
+      if (!/^\d{4,10}$/.test(v)) { fieldError(code, 'Enter the 6-digit code from the email.'); code.focus(); return; }
+      fieldError(code, null); status.textContent = 'Signing in...';
+      try { await account.verifyCode(email.value.trim(), v); prof = await db.profile(); viewAccount(); announce('Signed in. Your journal is syncing.'); }
+      catch (err) { status.textContent = authMsg(err); }
+    });
+    ap(sheet, h('h1', { class: 'h1', text: st?.needsSignIn ? 'Sign in again' : 'Use Steps on any device' }),
+      h('p', { class: 'prose', text: st?.needsSignIn ? 'Your sign-in expired. Sign in again to keep syncing. Nothing on this phone was lost.' : 'Signing in is optional. Steps works fully without an account, even offline. Sign in with your email to keep your journal on every device you use.' }),
+      ...privacy, form,
+      h('p', { class: 'fineprint', text: 'No password. We email you a one-time code. Your email is used only to sign you in.' }));
+    return;
+  }
+  const syncLine = h('p', { class: 'sync-line', role: 'status', 'aria-live': 'polite' });
+  const paint = () => { const s = account.state(); if (!s) return;
+    syncLine.textContent = !navigator.onLine ? "You're offline. Changes are saved on this phone and will sync when you're back online."
+      : s.syncState === 'syncing' ? 'Syncing...' : s.syncState === 'error' ? (s.syncError === 'busy' ? 'Sync is busy. It will try again soon.' : "Couldn't sync just now. It will try again.")
+      : `Synced. Last sync ${fmtTime(s.lastSyncAt)}.`; };
+  paint(); const onAcct = () => paint(); addEventListener('fim-account', onAcct); addEventListener('online', onAcct); addEventListener('offline', onAcct);
+  const erase = h('input', { type: 'checkbox', id: 'acct-erase', checked: true });
+  const delStatus = h('p', { class: 'help', role: 'status', 'aria-live': 'polite' });
+  ap(sheet, h('h1', { class: 'h1', text: 'Account and sync' }),
+    h('p', { class: 'acct-who' }, 'Signed in as ', h('strong', { text: st.email })), syncLine, ...privacy,
+    h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn btn-primary', onclick: async () => { await account.syncNow(); paint(); } }, 'Sync now'),
+      link('/app/backup', 'Save a backup file', { class: 'btn btn-secondary' })),
+    h('p', {}, h('button', { type: 'button', class: 'textlink', onclick: async () => { await account.signOut(); viewAccount(); announce('Signed out. Your journal is still on this phone.'); } }, 'Sign out')),
+    h('p', { class: 'help', text: 'Signing out keeps your journal on this phone. It stops syncing until you sign in again.' }),
+    h('section', { class: 'danger-zone', 'aria-labelledby': 'del-h' },
+      h('h2', { id: 'del-h', class: 'heading', text: 'Delete my account and data' }),
+      h('p', { text: 'This permanently deletes your account and every synced answer from our server. It cannot be undone. Save a backup file first if you want a copy.' }),
+      h('label', { class: 'check' }, erase, h('span', { class: 'box', 'aria-hidden': 'true' }, s('svg', { viewBox: '0 0 24 24', width: '20', height: '20' }, s('path', { d: 'M5 12.5l4.5 4.5L19 7' }))), h('span', { text: 'Also erase the journal on this phone' })),
+      h('div', { class: 'btn-row' }, h('button', { type: 'button', class: 'btn btn-secondary btn-delete', onclick: async () => {
+        if (!confirm('Delete your account and all synced data? This cannot be undone.')) return;
+        delStatus.textContent = 'Deleting...';
+        try { const r = await account.deleteAccount({ eraseLocal: erase.checked }); removeEventListener('fim-account', onAcct); prof = await db.profile();
+          sheet.replaceChildren(h('h1', { class: 'h1', text: 'Account deleted' }), h('p', { class: 'prose', text: `Your account and ${r.items} synced ${r.items === 1 ? 'answer' : 'answers'} were deleted from our server.${erase.checked ? ' This phone was erased too.' : ' Your journal is still on this phone.'}` }),
+            h('div', { class: 'btn-row' }, link('/app/', 'Back to the app', { class: 'btn btn-primary' }))); announce('Account deleted.'); }
+        catch (e) { delStatus.textContent = navigator.onLine ? "Couldn't delete right now. Nothing was removed. Try again." : "You're offline. Connect to delete your account."; }
+      } }, 'Delete my account and data')), delStatus));
+}
+
 // ---------- About ----------
 function viewAbout() {
   document.title = 'About | Steps';
   mount(h('main', { class: 'page' }, topbar({ back: '/app/' }), h('div', { class: 'sheet' }, h('div', { class: 'sheet-inner' },
     h('h1', { class: 'h1', text: c.door1.about?.heading || 'About' }),
     h('div', { class: 'prose' }, paras(c.door1.about?.body || '')),
-    h('p', { style: 'font-weight:600', text: T().aboutPrivacy }),
+    h('p', { style: 'font-weight:600', text: T().aboutPrivacy }), draftPill('Privacy wording'),
+    h('p', {}, link('/app/account', account.signedIn() ? 'Account and sync' : 'Sign in to use Steps on any device', { class: 'textlink' })),
     h('h2', { class: 'heading', text: 'Scripture' }), h('p', { class: 'esv', text: c.esv }),
     h('h2', { class: 'heading', text: 'Photography' }),
     h('ul', { class: 'timeline' }, c.credits.map((cr) => h('li', { style: 'padding:10px 0' }, `${cr.photographer}, `, ext(cr.pageUrl, `Pexels photo ${cr.pexelsId}`), h('span', { class: 'meta', text: ` (${cr.slot}). ${cr.license}.` })))),
@@ -901,5 +981,7 @@ async function registerSW() {
   if (new URLSearchParams(location.search).get('src')?.startsWith('invite') && !(await db.profile())?.door) history.replaceState({}, '', '/app/start' + location.search);
   await render();
   forms.startRetries();
+  account.start();
+  addEventListener('fim-remote-change', () => { if (!journaling && !document.querySelector('.bsheet.on') && !/^\/app\/(account|backup|testimony|share)/.test(location.pathname)) render(); });
   registerSW();
 })();
