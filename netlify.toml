@@ -12,15 +12,9 @@
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
     Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
 
-# Do not serve server source, dev tools or working notes from the preview.
+# Do not serve server source or working notes. (/app/tools and /app/*.md are 404ed in _redirects, ahead of the /app/* rule.)
 [[redirects]]
   from = "/netlify/*"
-  to = "/404"
-  status = 404
-  force = true
-
-[[redirects]]
-  from = "/app/tools/*"
   to = "/404"
   status = 404
   force = true
@@ -57,18 +51,6 @@
 
 [[redirects]]
   from = "/RESTYLE-REFS.md"
-  to = "/404"
-  status = 404
-  force = true
-
-[[redirects]]
-  from = "/app/DESIGN.md"
-  to = "/404"
-  status = 404
-  force = true
-
-[[redirects]]
-  from = "/app/CREDITS.md"
   to = "/404"
   status = 404
   force = true
