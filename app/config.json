@@ -13,6 +13,6 @@
   "appUrl": "https://faithinmotionbook.com/app/",
   "signupUrl": "https://faithinmotionbook.com/#notify-form",
   "introPdf": "/assets/faith-in-motion-introduction-sample.pdf",
-  "newWordingDraft": false,
-  "_newWordingDraftNote": "All steps-five wording approved by Herman 2026-10-17 6:28 PM CT. check.mjs fails if this is true on steps-prod-golive or in any go-live build."
+  "newWordingDraft": true,
+  "_newWordingDraftNote": "steps-next preview: true shows Draft, pending Herman pills on new wording in the app and on /groups/. Must be false to ship."
 }

@@ -149,6 +149,7 @@ function openMenu() {
     have ? item('path', N.planMenu, '/app/plan') : null,
     item('share', 'Share a card', '/app/share'),
     item('chat', 'Send a testimony', '/app/testimony'),
+    have ? item('sun', N.remMenu, '/app/reminders') : null,
     !isStandalone() ? h('li', {}, h('button', { type: 'button', onclick: () => { closeSheet(true); offerInstall(true); } }, icon('phone'), 'Install the app')) : null,
     item('phone', account.signedIn() ? 'Account and sync' : 'Sign in to sync', '/app/account'),
     item('archive', 'Backup and restore', '/app/backup'),
@@ -196,6 +197,7 @@ async function render() {
   if (a === 'stop') return viewStop(b, d || 'read');
   if (a === 'steps') return viewSteps();
   if (a === 'plan') return viewPlan();
+  if (a === 'reminders') return viewReminders();
   if (a === 'journal') return viewJournal();
   if (a === 'share') return viewShare();
   if (a === 'testimony') return viewTestimony();
@@ -368,10 +370,11 @@ async function viewToday() {
   const motion = await motionCheck(byStop);
   const partner = partnerFollowUp(steps, byStop);
   const notes = patternCard(byStop, steps);
+  const quiet = quietCard(byStop, steps, stop, screen);
   const upd = updateWaiting ? h('p', { class: 'update-line' }, T().updated + ' ', h('button', { class: 'textlink', type: 'button', onclick: applyUpdate }, 'Reload')) : null;
   mount(h('main', { class: 'today' }, topbar(),
     h('div', { class: 'band' }, img(stopImg(stop), { eager: true, altOverride: stopAlt(stop) }), h('p', { class: 'lockup', 'aria-hidden': 'true' }, h('b', {}, 'Faith '), h('i', {}, 'in Motion'))),
-    h('div', { class: 'sheet' }, h('div', { class: 'sheet-inner' }, h('h1', { class: 'sr-only', text: 'Today' }), upd, card, partner, notes, motion, vowEl,
+    h('div', { class: 'sheet' }, h('div', { class: 'sheet-inner' }, h('h1', { class: 'sr-only', text: 'Today' }), upd, quiet, card, partner, notes, motion, vowEl,
       h('p', { style: 'margin-top:28px' }, link('/app/route', 'Open the Route', { class: 'textlink' }))))));
   warm(stop);
 }
@@ -838,6 +841,52 @@ function recapCard(r, { compact = false } = {}) {
     r.reread ? h('p', { class: 'bookref', text: nf('reread', { ref: r.reread }) }) : null,
     compact ? null : h('p', { class: 'help', text: N.privateNote }));
 }
+// ---------- steps-next: gentle reminders ----------
+const QUIET_DAYS = 7;
+function quietCard(byStop, steps, stop, screen) {
+  if (prof?.quietCard === false) return null;
+  const days = F.quietDays(F.lastActivity(byStop, steps));
+  if (days < QUIET_DAYS) return null;
+  const snooze = Number(localStorage.getItem('fim-quiet-snooze') || 0); if (Date.now() < snooze) return null;
+  const box = h('section', { class: 'card quiet-card', 'aria-label': N.quietTitle },
+    h('h3', {}, N.quietTitle, ' ', draftNew('Pick up card')),
+    h('p', { class: 'quiet', text: nf('quietBody', { n: days, stop: stop.order, screen: SCREEN_NAMES[screen] }) }),
+    h('div', { class: 'btn-row' }, link(`/app/stop/${stop.id}/${screen}`, tf('continueStop', { n: stop.order }), { class: 'btn btn-primary' }),
+      h('button', { class: 'btn btn-secondary', type: 'button', onclick: () => { localStorage.setItem('fim-quiet-snooze', String(Date.now() + QUIET_DAYS * 86400000)); box.remove(); } }, T().notNow)),
+    h('p', {}, h('button', { class: 'textlink', type: 'button', onclick: async () => { prof = await db.saveProfile({ quietCard: false }); box.remove(); } }, N.quietOff)));
+  return box;
+}
+function viewReminders() {
+  document.title = `${N.remTitle} | Steps`;
+  const quietOn = prof?.quietCard !== false;
+  const row = (title, help, ...kids) => h('section', { class: 'card rem' }, h('h3', { text: title }), h('p', { class: 'help', text: help }), ...kids);
+  mount(h('main', { class: 'page reminders' }, topbar({ back: '/app/' }), h('div', { class: 'sheet' }, h('div', { class: 'sheet-inner' },
+    h('h1', { class: 'h1' }, N.remTitle, ' ', draftNew('Reminders')),
+    h('p', { class: 'prose', text: N.remIntro }),
+    row(N.remSunday, N.remSundayHelp, sundayIcsBtn()),
+    row(N.remStep, N.remStepHelp),
+    h('section', { class: 'card rem' }, checkbox(N.remQuiet, quietOn, async (e) => { prof = await db.saveProfile({ quietCard: e.target.checked }); if (e.target.checked) localStorage.removeItem('fim-quiet-snooze'); })),
+    !isStandalone() ? h('p', {}, h('button', { class: 'btn btn-secondary', type: 'button', onclick: () => offerInstall(true) }, N.remHome)) : null))));
+}
+// ---------- steps-next: home screen moment after a finished stop (at most twice, never after "Don't ask again") ----------
+const MOMENT_KEY = 'fim-install-moment';
+const momentState = () => { try { return JSON.parse(localStorage.getItem(MOMENT_KEY) || '{}'); } catch { return {}; } };
+function installMoment() {
+  if (isStandalone()) return null;
+  const st = momentState(); if (st.never || (st.shown || 0) >= 2) return null;
+  const canPrompt = !!deferredPrompt, ios = isIOS(); if (!canPrompt && !ios) return null;
+  localStorage.setItem(MOMENT_KEY, JSON.stringify({ ...st, shown: (st.shown || 0) + 1, lastAt: new Date().toISOString() }));
+  sessionStorage.setItem('fim-install-offered', '1'); // no second install offer this session
+  const done = (never) => { if (never) localStorage.setItem(MOMENT_KEY, JSON.stringify({ ...momentState(), never: true })); box.remove(); };
+  const box = h('section', { class: 'install-moment', 'aria-label': N.installTitle },
+    h('h2', {}, N.installTitle, ' ', draftNew('Install moment')), h('p', { text: N.installWhy }),
+    ios && !canPrompt ? h('p', { class: 'ios-steps', style: 'display:flex;gap:10px;align-items:flex-start' }, h('span', { style: 'flex:none;margin-top:2px' }, iosShareGlyph()), T().iosInstall) : null,
+    h('div', { class: 'btn-row' },
+      canPrompt ? h('button', { class: 'btn btn-primary', type: 'button', onclick: async () => { const dp = deferredPrompt; deferredPrompt = null; dp.prompt(); const r = await dp.userChoice.catch(() => null); done(r?.outcome === 'accepted'); } }, N.installBtn) : null,
+      h('button', { class: 'btn btn-secondary', type: 'button', onclick: () => done(false) }, T().notNow),
+      h('button', { class: 'textlink', type: 'button', onclick: () => done(true) }, N.installNever)));
+  return box;
+}
 async function viewJournal() {
   document.title = `${N.journalTitle} | Steps`;
   const byStop = await byStopAll(); const steps = await db.all('steps');
@@ -979,6 +1028,7 @@ function viewSendoff() {
       !d1 && !fromShare && stop.screens[screen] ? h('p', { class: 'lede quiet-light', text: tf('upNextIn', { n: stop.order, screen: SCREEN_NAMES[screen] }) }) : null,
       shareTook(), back];
   }
+  if (done) fg.push(installMoment());
   mount(h('main', { class: `dark full sendoff${done ? ' stop-complete' : ''}` },
     h('div', { class: 'bg' }, img(stopImg(next || stop) || c.img.items.door1, { eager: true, altOverride: '' }), done && !reducedMotion() ? h('div', { class: 'glint', 'aria-hidden': 'true' }) : null), topbar(),
     h('div', { class: 'fg rise' }, ...fg)));
@@ -1284,6 +1334,7 @@ function viewAbout() {
     h('p', { style: 'font-weight:600', text: T().aboutPrivacy }), draftPill('Privacy wording'),
     h('p', {}, link('/app/account', account.signedIn() ? 'Account and sync' : 'Sign in to use Steps on any device', { class: 'textlink' })),
     h('h2', { class: 'heading', text: T().devoAboutHeading }), devoMention('prose'),
+    h('h2', { class: 'heading' }, N.groupsHeading, ' ', draftNew('Leader guide link')), h('p', { class: 'prose', text: N.groupsHelp }), h('p', {}, ext('/groups/', N.groupsLink, { class: 'textlink leader-link' })),
     h('h2', { class: 'heading', text: 'Scripture' }), h('p', { class: 'esv', text: c.esv }),
     h('h2', { class: 'heading', text: 'Photography' }),
     h('ul', { class: 'timeline' }, c.credits.map((cr) => h('li', { style: 'padding:10px 0' }, `${cr.photographer}, `, ext(cr.pageUrl, `Pexels ${cr.kind === 'video' ? 'video' : 'photo'} ${cr.pexelsId}`), h('span', { class: 'meta', text: ` (${cr.slot}). ${cr.license}.` })))),

@@ -185,3 +185,17 @@ export async function upgrade(db, cachesApi = globalThis.caches) {
   if (prof) await db.saveProfile({ schemaVersion: DATA_VERSION });
   return { from, to: DATA_VERSION, snapshot: snap };
 }
+
+// ---------- steps-next: last activity, read from existing timestamps only (no new field) ----------
+export function lastActivity(byStop, steps = [], motionChecks = []) {
+  const ts = [];
+  for (const p of Object.values(byStop || {})) {
+    ts.push(p.readAt, p.finishedAt, p.move?.doneAt, p.move?.missedAt, p.review?.reviewedAt, p.season?.at, p.loop?.at, p.answers?.rule?.savedAt);
+    for (const v of Object.values(p.visited || {})) ts.push(v);
+  }
+  for (const s of steps) ts.push(s.createdAt, s.doneAt);
+  for (const m of motionChecks) ts.push(m.updatedAt);
+  const ms = ts.map((x) => Date.parse(x || '')).filter((x) => Number.isFinite(x));
+  return ms.length ? Math.max(...ms) : null;
+}
+export const quietDays = (last, now = Date.now()) => (last ? Math.floor((now - last) / 86400000) : 0);

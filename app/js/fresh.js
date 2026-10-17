@@ -43,6 +43,14 @@ export const N = {
   // E. Before and after
   whereStarted: 'Where you started', shareOnward: 'Share a card', tellHerman: 'Tell Herman what changed',
   onwardChip: 'Still walking', onwardHeadline: "I'm walking Faith in Motion one faithful step at a time.",
+  // steps-next: install moment, gentle reminders, leader guide
+  installTitle: 'Add Steps to your home screen', installWhy: 'It opens like an app, and your stops work offline.', installBtn: 'Add to home screen', installNever: "Don't ask again",
+  quietTitle: 'Pick up where you left off', quietBody: 'It has been {n} days. Stop {stop} is waiting for you at {screen}.', quietOff: 'Turn off this card',
+  remTitle: 'Reminders', remMenu: 'Reminders', remIntro: 'Steps never sends notifications on its own. Pick what helps you.',
+  remSunday: 'Weekly Sunday reminder', remSundayHelp: 'Adds a repeating Sunday event to your own calendar: traded or buried?',
+  remStep: 'Step reminders', remStepHelp: 'When you set a step, tap Add to my calendar to get a reminder on the day.',
+  remQuiet: 'Show "Pick up where you left off" in the app after a quiet week', remHome: 'Add Steps to your home screen',
+  groupsHeading: 'Small groups', groupsLink: 'Small group leader guide', groupsHelp: 'Discussion questions for every stop, for leaders walking the book together.',
   // Upgrade safety copy
   autoCopy: 'Automatic copy from before the last update', autoRestore: 'Restore the automatic copy', autoConfirm: "Replace this phone's answers with the automatic copy from {when}?",
 };

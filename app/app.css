@@ -290,3 +290,8 @@ input:focus-visible, textarea:focus-visible { outline: 2px solid var(--amber); o
   .page, .sheet, .sheet-inner { background: #fff !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; }
   .plan-sec { break-inside: avoid; }
 }
+/* ---------- steps-next ---------- */
+.install-moment { margin-top: 22px; padding: 16px 18px; border: 1px solid rgba(250, 212, 145, .45); border-radius: 16px; background: rgba(18, 32, 64, .55); }
+.install-moment h2 { font-size: 22px; margin: 0 0 6px; } .install-moment p { margin: 6px 0; }
+.quiet-card { border-left: 3px solid var(--amber); }
+.rem h3 { margin-top: 0; }
