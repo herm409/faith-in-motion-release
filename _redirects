@@ -1,2 +1,5 @@
 /thanks /thanks.html 200
+/app/tools/*  /404  404!
+/app/DESIGN.md  /404  404!
+/app/CREDITS.md  /404  404!
 /app/*  /app/index.html  200

@@ -1,7 +1,7 @@
 {
-  "inviteCopyApproved": false,
+  "inviteCopyApproved": true,
   "introPdfOffered": true,
-  "draftMarkers": true,
+  "draftMarkers": false,
   "draftMarkerText": "Draft, pending Herman",
   "_draftMarkersNote": "true shows a small Draft, pending Herman pill on the testimony consent, the Walk with me invite, prices, and the prayers. Set to false at go-live; no content edits needed.",
   "formsMode": "live",

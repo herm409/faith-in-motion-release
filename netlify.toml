@@ -1,4 +1,4 @@
-# Steps preview only (branch steps-pwa-preview). Production (main) has no netlify.toml, no /app and no functions.
+# Steps app (/app) and its functions. Headers apply to /app/* only; the landing pages keep their production behavior.
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"

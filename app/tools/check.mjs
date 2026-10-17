@@ -23,7 +23,9 @@ const bad = /[\u2012-\u2015]/; const textFiles = [...js, join(APP, 'index.html')
 const dashed = textFiles.filter((f) => bad.test(readFileSync(f, 'utf8')));
 if (dashed.length) { fail++; console.log('FAIL figure/en/em dashes in', dashed); } else console.log('OK   no figure/en/em dashes in shipped text');
 const html = readFileSync(join(APP, 'index.html'), 'utf8');
-if (!/name="robots"[^>]*noindex/.test(html)) { fail++; console.log('FAIL noindex missing'); } else console.log('OK   noindex present (remove at go-live)');
+{ const live = JSON.parse(readFileSync(join(APP, 'config.json'), 'utf8')).draftMarkers === false; const has = /name="robots"[^>]*noindex/.test(html);
+  if (live === has) { fail++; console.log(live ? 'FAIL noindex still present in a go-live build' : 'FAIL noindex missing in a preview build'); }
+  else console.log(live ? 'OK   go-live build: no noindex, draft markers off' : 'OK   noindex present (remove at go-live)'); }
 // landing page untouched vs main
 try {
   const out = execSync('git diff --name-only main -- index.html styles.css script.js thanks.html', { cwd: join(APP, '..') }).toString().trim();
