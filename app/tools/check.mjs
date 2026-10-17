@@ -30,12 +30,18 @@ const html = readFileSync(join(APP, 'index.html'), 'utf8');
 try {
   const cwd = join(APP, '..');
   const branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd }).toString().trim();
-  if (branch === 'landing-motion') {
-    // This branch exists to redesign the landing page: index/styles/script may change; thanks.html and forms.html must not.
-    const out = execSync('git diff --name-only steps-prod-golive -- thanks.html forms.html', { cwd }).toString().trim();
-    const changed = execSync('git diff --name-only main -- index.html styles.css script.js', { cwd }).toString().trim().split('\n').filter(Boolean);
-    if (out) { fail++; console.log('FAIL thanks/forms changed on landing-motion:', out); }
-    else console.log(`OK   landing-motion: thanks.html + forms.html unchanged vs steps-prod-golive; landing redesign files changed on purpose (${changed.join(', ') || 'none'})`);
+  // a38a74c = landing redesign Herman approved for production on 2026-10-17. Once a branch contains it,
+  // the landing must match that approved version exactly (forms.html and thanks.html unchanged since 405f631).
+  const APPROVED = 'a38a74c';
+  let hasApproved = false;
+  try { execSync(`git merge-base --is-ancestor ${APPROVED} HEAD`, { cwd }); hasApproved = true; } catch {}
+  if (hasApproved || branch === 'landing-motion') {
+    const base = hasApproved ? APPROVED : 'steps-prod-golive';
+    const drift = execSync(`git diff --name-only ${base} -- index.html styles.css script.js thanks.html`, { cwd }).toString().trim();
+    const forms = execSync('git diff --name-only 405f631 -- forms.html thanks.html', { cwd }).toString().trim();
+    const bad = [...new Set([...(hasApproved ? drift.split('\n') : []), ...forms.split('\n')].filter(Boolean))];
+    if (bad.length) { fail++; console.log(`FAIL landing files differ from approved ${base} (or forms/thanks changed):`, bad.join(', ')); }
+    else console.log(`OK   landing matches approved redesign (${hasApproved ? APPROVED : 'landing-motion in progress'}); forms.html + thanks.html unchanged since 405f631`);
   } else {
     const out = execSync('git diff --name-only main -- index.html styles.css script.js thanks.html', { cwd }).toString().trim();
     if (out) { fail++; console.log('FAIL landing files changed:', out); } else console.log('OK   landing files unchanged vs main');
