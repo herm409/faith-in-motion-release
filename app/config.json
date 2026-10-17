@@ -13,6 +13,6 @@
   "appUrl": "https://faithinmotionbook.com/app/",
   "signupUrl": "https://faithinmotionbook.com/#notify-form",
   "introPdf": "/assets/faith-in-motion-introduction-sample.pdf",
-  "newWordingDraft": true,
+  "newWordingDraft": false,
   "_newWordingDraftNote": "steps-next preview: true shows Draft, pending Herman pills on new wording in the app and on /groups/. Must be false to ship."
 }
