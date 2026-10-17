@@ -1,0 +1,63 @@
+{
+ "source": "app-content/seasons-stubs.json (six season tracks approved as later content). drawsFrom checked against the final interior text; one section that is not a heading in the book was dropped (Chapter 6, Ask for Help, Then Take the Step).",
+ "tracks": [
+  {
+   "id": "afraid",
+   "title": "When I'm afraid",
+   "description": "Name the real fear under the holy-sounding phrase, then take one clear duty within 72 hours.",
+   "drawsFrom": [
+    "Chapter 8: How Fear Borrows Christian Vocabulary; The Faces Fear Wears; Concrete Next Steps",
+    "Chapter 3: The Buried Talent and the Story Fear Tells",
+    "Chapter 4: When You Feel Stuck Between Cry and Staff"
+   ]
+  },
+  {
+   "id": "fog",
+   "title": "When the next step is unclear",
+   "description": "Sort what's already clear from what isn't, then take one faithful inch in the light you have.",
+   "drawsFrom": [
+    "Chapter 9: Fog Is Weather, Not Always a Verdict; Concrete Practices for Foggy Days",
+    "Chapter 5: The Fog Between \"Called\" and \"Clear\"; Tuesday Morning: When the Map Is Still Blank"
+   ]
+  },
+  {
+   "id": "waiting",
+   "title": "When I'm waiting",
+   "description": "Test whether the wait is holy and specific or just a pause, and keep today's faithfulness either way.",
+   "drawsFrom": [
+    "Chapter 1: Holy Waiting Is Real, and Specific",
+    "Chapter 5: The Fog Between \"Called\" and \"Clear\"",
+    "Chapter 9: Holy Waiting vs. Permanent Pause",
+    "Chapter 8: Guardrails: What This Is Not"
+   ]
+  },
+  {
+   "id": "dry",
+   "title": "When I feel dry",
+   "description": "Return to the ordinary means and one small obedience while joy returns.",
+   "drawsFrom": [
+    "Chapter 6: When You Feel Dry; How Dependence Looks on a Tuesday"
+   ]
+  },
+  {
+   "id": "failure",
+   "title": "After a failure or regret",
+   "description": "Bring it to grace, receive mercy, get up, and pick the next step without a life sentence.",
+   "drawsFrom": [
+    "Chapter 2: What Changes When Grace Launches You; A Word to New Believers",
+    "Chapter 3: What This Looks Like Without Turning Grace Into Wages",
+    "Chapter 4: When I Waited for Perfect Clarity",
+    "Chapter 8: A Pastoral Word to the Sincerely Stuck"
+   ]
+  },
+  {
+   "id": "lean",
+   "title": "In a hard or lean season",
+   "description": "Ask \"Father, use this,\" name the little still in your hand, and offer it, with a clear get-help line.",
+   "drawsFrom": [
+    "Chapter 5: Struggle Is Not Always a Detour; Formation Without Romanticizing Pain",
+    "Chapter 10: What's in Your Hand?; A Pastoral Word to the \"One-Talent\" Heart"
+   ]
+  }
+ ]
+}

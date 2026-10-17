@@ -8,6 +8,8 @@ import * as forms from './forms.js';
 import * as ics from './ics.js';
 import * as share from './share.js';
 import * as account from './account.js';
+import * as F from './five.js';
+import { N } from './fresh.js';
 
 const { SCREENS, SCREEN_NAMES } = C;
 let c; // content
@@ -21,6 +23,12 @@ const tf = (key, vars) => String(T()[key] || '').replace(/\{(\w+)\}/g, (_, k) =>
 const draftPill = (what) => (c?.config?.draftMarkers ? h('span', { class: 'draft-pill', 'data-draft': what, title: `${what}: not final yet` }, c.config.draftMarkerText || 'Draft, pending Herman') : null);
 const ap = (el, ...k) => { el.append(...k.flat(Infinity).filter((x) => x !== null && x !== undefined && x !== false && x !== '')); return el; };
 const APP_VERSION = 'preview-1';
+// steps-five: every new piece of wording comes from fresh.js and carries this pill while config.newWordingDraft is true.
+const nf = (key, vars = {}) => String(N[key] || '').replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
+const draftNew = (what) => (c?.config?.newWordingDraft ? h('span', { class: 'draft-new', 'data-draft-new': what, title: `${what}: new wording, not final yet` }, c.config.draftMarkerText || 'Draft, pending Herman') : null);
+async function byStopAll() { return Object.fromEntries((await db.all('stopProgress')).map((x) => [x.stopId, x])); }
+// Private echo of the reader's own words. Shown only on this device, never on a card.
+const echo = (label, text, sub, what) => h('div', { class: 'card echo' }, h('p', { class: 'label', style: 'margin-top:0' }, label, ' ', draftNew(what)), h('p', { class: 'echo-text', text }), sub ? h('p', { class: 'help', text: sub }) : null);
 
 // ---------- Helpers ----------
 const todayISO = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -137,6 +145,8 @@ function openMenu() {
     h('li', {}, h('button', { type: 'button', class: 'helpnow-item', onclick: () => { closeSheet(true); openHelpNow(); } }, icon('sun'), c.manifest.helpNow?.label || c.helpNow?.menuLabel || 'Need help now?')),
     have ? item('path', 'The Route', '/app/route') : item('path', 'Start here', '/app/start'),
     have ? item('steps', 'My steps', '/app/steps') : null,
+    have ? item('archive', N.journalMenu, '/app/journal') : null,
+    have ? item('path', N.planMenu, '/app/plan') : null,
     item('share', 'Share a card', '/app/share'),
     item('chat', 'Send a testimony', '/app/testimony'),
     !isStandalone() ? h('li', {}, h('button', { type: 'button', onclick: () => { closeSheet(true); offerInstall(true); } }, icon('phone'), 'Install the app')) : null,
@@ -185,6 +195,8 @@ async function render() {
   if (a === 'route') return viewRoute();
   if (a === 'stop') return viewStop(b, d || 'read');
   if (a === 'steps') return viewSteps();
+  if (a === 'plan') return viewPlan();
+  if (a === 'journal') return viewJournal();
   if (a === 'share') return viewShare();
   if (a === 'testimony') return viewTestimony();
   if (a === 'backup') return viewBackup();
@@ -318,16 +330,21 @@ async function viewToday() {
   const step = await currentStep();
   const { stop, screen } = nextScreen();
   const steps = await db.all('steps');
+  const byStop = await byStopAll();
   const inMotion = steps.some((x) => x.doneAt && new Date(x.doneAt) >= weekStart());
   const card = h('section', { class: 'today-card', 'aria-label': 'Today' });
   if (step && step.dueDate === todayISO()) ap(card, h('p', { class: 'banner', role: 'status', text: T().dueToday }));
   if (step) {
     const dateBox = h('div');
+    const sp = byStop[step.stopId] || {};
     ap(card, h('p', { class: 'label', text: c.door1.home?.todayLabel || 'Your step' }),
-      h('h2', {}, `Your step: ${step.text}`), h('p', { class: 'quiet', text: `By ${fmtDay(step.dueDate)}` }),
-      h('div', { class: 'btn-row' },
+      h('h2', {}, `Your step: ${step.text}`), h('p', { class: 'quiet', text: `By ${fmtDay(step.dueDate)}` }));
+    if (F.overdue(step, todayISO())) ap(card, loopBox(step, dateBox, byStop));
+    else ap(card, h('div', { class: 'btn-row' },
         h('button', { class: 'btn btn-primary', type: 'button', onclick: (e) => tookStep(step, e.currentTarget) }, T().tookStep),
         h('button', { class: 'btn btn-secondary', type: 'button', onclick: () => newDatePicker(step, dateBox) }, T().newDate)), dateBox);
+    if (step.outcome === 'holy-wait' && sp.loop?.stepId === step.id && sp.loop.answer === 'holy-wait') ap(card, h('p', { class: 'quiet loop-holy' }, N.loopHolySaved, ' ', draftNew('Close the loop')));
+    if (!prof?.sundayIcsOffered) ap(card, sundayIcsBtn());
     if (stop.id !== step.stopId) ap(card, h('p', { class: 'up-next' }, h('span', { class: 'label', text: T().upNext }), ' ', link(`/app/stop/${stop.id}/${screen}`, `Stop ${stop.order}: ${stop.title}`, { class: 'textlink' })));
   } else {
     const fresh = screen === 'read' && !(await db.progress(stop.id)).visited?.read;
@@ -338,7 +355,7 @@ async function viewToday() {
   }
   if (new Date().getDay() === 0) {
     const last = steps.filter((x) => !x.outcome && new Date(x.createdAt) >= new Date(weekStart().getTime() - 7 * 86400000)).sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
-    if (last) ap(card, sundayReview(last));
+    if (last) ap(card, sundayReview(last, byStop));
   }
   if (inMotion) ap(card, h('p', { class: 'quiet', style: 'margin-top:16px;font-weight:600', text: T().inMotion }));
   const vow = C.verseOfWeek(c);
@@ -346,31 +363,124 @@ async function viewToday() {
   const vowEl = vow ? h('section', { class: 'vow', 'aria-label': vowLabel },
     h('p', { class: 'label', style: 'margin-top:0', text: vowLabel }),
     h('blockquote', { class: 'verse', style: 'margin:8px 0' }, h('p', { text: vow.text }), h('cite', { text: `${vow.ref} (ESV)` })),
-    h('p', { class: 'quiet', text: `Read it in ${vow.readIn}` })) : null;
-  const motion = await motionCheck();
+    h('p', { class: 'quiet', text: `Read it in ${vow.readIn}` }),
+    h('p', { class: 'share-mini' }, link('/app/share?card=verse', N.shareVerse, { class: 'textlink' }), ' ', draftNew('Share verse'))) : null;
+  const motion = await motionCheck(byStop);
+  const partner = partnerFollowUp(steps, byStop);
+  const notes = patternCard(byStop, steps);
   const upd = updateWaiting ? h('p', { class: 'update-line' }, T().updated + ' ', h('button', { class: 'textlink', type: 'button', onclick: applyUpdate }, 'Reload')) : null;
   mount(h('main', { class: 'today' }, topbar(),
     h('div', { class: 'band' }, img(stopImg(stop), { eager: true, altOverride: stopAlt(stop) }), h('p', { class: 'lockup', 'aria-hidden': 'true' }, h('b', {}, 'Faith '), h('i', {}, 'in Motion'))),
-    h('div', { class: 'sheet' }, h('div', { class: 'sheet-inner' }, h('h1', { class: 'sr-only', text: 'Today' }), upd, card, motion, vowEl,
+    h('div', { class: 'sheet' }, h('div', { class: 'sheet-inner' }, h('h1', { class: 'sr-only', text: 'Today' }), upd, card, partner, notes, motion, vowEl,
       h('p', { style: 'margin-top:28px' }, link('/app/route', 'Open the Route', { class: 'textlink' }))))));
   warm(stop);
 }
-function sundayReview(step) {
+function sundayReview(step, byStop = {}) {
   const box = h('fieldset', { class: 'card', style: 'margin-top:20px' }, h('legend', { class: 'legend', text: T().sundayAsk }), h('p', { class: 'quiet', text: step.text }));
+  // The week's step next to what the reader wrote when they set it (their own Build answers; private).
+  const st = C.stopById(c, step.stopId); const b = byStop[step.stopId]?.answers?.build;
+  if (st && b) {
+    const kinds = classifyBuild(st.screens.build.prompts);
+    const rows = st.screens.build.prompts.map((pr, i) => { const k = kinds[i]; const v = k === 'text' ? b.extra?.[i] : k === 'stopDoing' || k === 'partner' ? b[k] : null; return v && String(v).trim() ? h('p', { class: 'help' }, h('b', {}, pr, ' '), String(v).trim()) : null; }).filter(Boolean);
+    if (rows.length) ap(box, h('div', { class: 'sunday-wrote' }, h('p', { class: 'label' }, N.sundayWrote, ' ', draftNew('Sunday card')), rows));
+  }
+  if (!prof?.sundayIcsOffered) ap(box, sundayIcsBtn());
   for (const [v, l] of [['traded', 'Traded'], ['buried', 'Buried'], ['holy-wait', 'Holy wait']]) {
     ap(box, h('label', { class: 'radio-row' }, h('input', { type: 'radio', name: 'sun', value: v, onchange: async () => { step.outcome = v; await db.put('steps', step); if (!box.querySelector('.btn')) ap(box, h('div', { class: 'btn-row' }, link('/app/route', T().pickNext, { class: 'btn btn-secondary' }))); } }), l));
   }
   return box;
 }
-async function motionCheck() {
+// Where each Motion check prompt was first asked, so the card can show that first answer (E: before and after).
+function firstAnswerFor(prompt, byStop) {
+  for (const st of c.stops) {
+    const p = byStop[st.id]; if (!p) continue;
+    for (const screen of ['pulse', 'nameIt', 'build']) {
+      const i = st.screens[screen].prompts.indexOf(prompt); if (i < 0) continue;
+      let v = screen === 'build' ? null : p.answers?.[screen]?.[i];
+      if (screen === 'build') { const k = classifyBuild(st.screens.build.prompts)[i]; const b = p.answers?.build || {}; v = k === 'text' ? b.extra?.[i] : k === 'step' ? b.step : b[k]; }
+      if (v && String(v).trim()) return { stop: st, text: String(v).trim() };
+    }
+  }
+  return null;
+}
+async function motionCheck(byStop = {}) {
   const prompts = c.strings.motionCheck; if (!Array.isArray(prompts) || !prompts.length) return null; // hidden without ui-strings.json
   const month = todayISO().slice(0, 7); const prev = new Date(); prev.setDate(1); prev.setMonth(prev.getMonth() - 1);
   const cur = (await db.get('motionChecks', month)) || { month, answers: [] }; const last = await db.get('motionChecks', todayISO(prev).slice(0, 7));
   const ind = savedIndicator();
   const save = debounce(async () => { await db.put('motionChecks', cur); flashSaved(ind); }, 400);
-  return h('section', { class: 'card' }, h('h3', { text: c.strings.motionCheckTitle || 'Motion check' }), prompts.map((p, i) => h('div', { class: 'field' },
-    h('label', { for: `mc-${i}`, text: p }), last?.answers?.[i] ? h('p', { class: 'help', text: `Last month: ${last.answers[i]}` }) : null,
-    h('textarea', { id: `mc-${i}`, oninput: (e) => { cur.answers[i] = e.target.value; save(); } }, cur.answers[i] || ''))), ind);
+  const firsts = prompts.map((p) => firstAnswerFor(p, byStop));
+  return h('section', { class: 'card motion-check' }, h('h3', {}, c.strings.motionCheckTitle || 'Motion check', ' ', draftNew('Motion check')), h('p', { class: 'help', text: N.mcIntro }), prompts.map((p, i) => h('div', { class: 'field' },
+    h('label', { for: `mc-${i}`, text: p }),
+    firsts[i] ? h('p', { class: 'help first-answer' }, h('b', {}, nf('atStopN', { n: firsts[i].stop.order }), ' '), firsts[i].text) : null,
+    last?.answers?.[i] ? h('p', { class: 'help', text: `Last month: ${last.answers[i]}` }) : null,
+    h('textarea', { id: `mc-${i}`, oninput: (e) => { cur.answers[i] = e.target.value; save(); } }, cur.answers[i] || ''))), ind,
+    firsts.some(Boolean) ? onwardRow() : null);
+}
+// E: a share card with nothing private on it, plus the testimony form.
+const onwardRow = () => h('div', { class: 'btn-row onward' }, link('/app/share?card=onward', N.shareOnward, { class: 'btn btn-secondary' }), link('/app/testimony?stop=plan', N.tellHerman, { class: 'btn btn-secondary' }), draftNew('Before and after'));
+
+// ---------- Close the loop (2), words come back (A), partner follow-up (D), pattern notes (C) ----------
+async function patchProgress(stopId, fn) { const p = await db.progress(stopId); fn(p); await db.saveProgress(p); return p; }
+async function saveLoop(step, answer) {
+  const rec = { stepId: step.id, answer, at: new Date().toISOString(), dueDate: step.dueDate };
+  return patchProgress(step.stopId, (p) => { p.loop = rec; p.loopLog = [...(Array.isArray(p.loopLog) ? p.loopLog : []), rec].slice(-20); });
+}
+// Item 2: the weekly Sunday reminder (.ics) that was already coded, now offered.
+function sundayIcsBtn() {
+  return h('p', { class: 'sunday-ics' }, h('button', { class: 'textlink', type: 'button', onclick: async (e) => {
+    const r = await ics.shareOrDownload(ics.sundayIcs(), 'faith-in-motion-sunday.ics');
+    if (r !== 'cancelled') { prof = await db.saveProfile({ sundayIcsOffered: true }); e.target.closest('.sunday-ics').replaceChildren(h('span', { class: 'quiet', role: 'status', text: N.sundayIcsDone })); }
+  } }, N.sundayIcs), ' ', draftNew('Sunday reminder'));
+}
+function loopBox(step, dateBox, byStop) {
+  return h('div', { class: 'loop', role: 'group', 'aria-label': N.loopAsk }, h('p', { class: 'legend' }, N.loopAsk, ' ', draftNew('Close the loop')),
+    h('div', { class: 'btn-row' },
+      h('button', { class: 'btn btn-primary', type: 'button', onclick: async (e) => { const b = e.currentTarget; await saveLoop(step, 'yes'); tookStep(step, b); } }, N.loopYes),
+      h('button', { class: 'btn btn-secondary', type: 'button', onclick: async () => { await saveLoop(step, 'notyet'); newDatePicker(step, dateBox); ap(dateBox, wordsBack(byStop)); } }, N.loopNotYet),
+      h('button', { class: 'btn btn-secondary', type: 'button', onclick: async () => { await saveLoop(step, 'holy-wait'); step.outcome = 'holy-wait'; await db.put('steps', step); go('/app/', { replace: true }); } }, N.loopHoly)), dateBox);
+}
+// A: the reader's own earlier sentence on fear, and their Rule of Motion line for fear once it exists.
+function wordsBack(byStop) {
+  const fear = F.fearLines(c, byStop)[0]; const rule = F.ruleOf(byStop.s11);
+  const s11 = C.stopById(c, 's11');
+  const out = h('div', { class: 'words-back' });
+  if (fear) ap(out, echo(N.earlier, fear.text, `Stop ${fear.stop.order}, ${SCREEN_NAMES[fear.screen]}: ${fear.prompt}`, 'Words come back'));
+  if (rule && String(rule.lines[0] || '').trim()) ap(out, echo(N.ruleSays, `${s11.screens.build.prompts[0]} ${rule.lines[0]}`, null, 'Words come back'));
+  return out.children.length ? out : null;
+}
+function partnerName(b) { const v = String(b?.partner || '').trim(); return v && v.length <= 40 && !/[.?!]/.test(v) ? v : N.partnerDefault; }
+// D: on the step date, if the reader tapped Text my partner for this step, ask how it went. Saved to that step (by step id).
+function partnerFollowUp(steps, byStop) {
+  const today = todayISO(); const floor = (() => { const d = new Date(); d.setDate(d.getDate() - 14); return todayISO(d); })();
+  const st = steps.filter((x) => { const sp = byStop[x.stopId]; return sp?.partnerText?.stepId === x.id && x.dueDate && x.dueDate <= today && x.dueDate >= floor && !sp?.partnerFollowUp?.[x.id]?.at; })
+    .sort((a, b) => b.dueDate.localeCompare(a.dueDate))[0];
+  if (!st) return null;
+  const who = partnerName(byStop[st.stopId]?.answers?.build);
+  let checked = null;
+  const told = h('textarea', { id: 'pf-told', autocomplete: 'off' });
+  const box = h('section', { class: 'card partner-check', 'aria-label': nf('partnerAsk', { partner: who }) },
+    h('h3', {}, nf('partnerAsk', { partner: who }), ' ', draftNew('Partner follow-up')), h('p', { class: 'quiet', text: st.text }),
+    h('div', { class: 'chips', role: 'group', 'aria-label': nf('partnerAsk', { partner: who }) }, [['yes', N.partnerYes], ['no', N.partnerNo]].map(([v, l]) => h('button', { type: 'button', class: 'chip', 'data-k': v, 'aria-pressed': 'false', onclick: (e) => { checked = v; e.currentTarget.parentNode.querySelectorAll('.chip').forEach((b) => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } }, l))),
+    h('div', { class: 'field' }, h('label', { for: 'pf-told', text: N.partnerTold }), told),
+    h('div', { class: 'btn-row' }, h('button', { class: 'btn btn-primary', type: 'button', onclick: async () => {
+      await patchProgress(st.stopId, (p) => { p.partnerFollowUp = { ...(p.partnerFollowUp || {}), [st.id]: { checked, told: told.value, at: new Date().toISOString(), dueDate: st.dueDate } }; });
+      box.replaceChildren(h('p', { class: 'quiet', role: 'status', text: N.savedNote }));
+    } }, N.save)));
+  return box;
+}
+function patternText(n) {
+  const q = (Array.isArray(c.share) ? c.share : c.share.cards).find((x) => x.stopId === 's4' && /courage/i.test(x.quote))?.quote || '';
+  const ref = n.ref ? n.ref.replace(': ', ', ') : '';
+  if (n.id === 'moved') return nf('pMoved', { n: n.n, list: n.stops.join(', '), quote: q, ref });
+  if (n.id === 'buried') return nf('pBuried', { n: n.n, of: n.of, ref });
+  if (n.id === 'traded') return nf('pTraded', { n: n.n, of: n.of, ref });
+  if (n.id === 'holy') return nf('pHoly', { n: n.n, of: n.of, ref });
+  return nf('pOnTime', { n: n.n, of: n.of });
+}
+function patternCard(byStop, steps) {
+  const notes = F.patterns(c, byStop, steps); if (!notes.length) return null;
+  return h('section', { class: 'card patterns', 'aria-label': N.patternsTitle }, h('h3', {}, N.patternsTitle, ' ', draftNew('Pattern notes')), h('ul', { class: 'pattern-list' }, notes.map((n) => h('li', { 'data-pattern': n.id, text: patternText(n) }))));
 }
 async function tookStep(step, btn) {
   btn.disabled = true;
@@ -378,6 +488,7 @@ async function tookStep(step, btn) {
   step.doneAt = new Date().toISOString(); await db.put('steps', step);
   const p = await db.progress(step.stopId); p.move.doneAt = step.doneAt; await db.saveProgress(p);
   sessionStorage.setItem('fim-walked', step.stopId);
+  sessionStorage.setItem('fim-took', step.stopId);
   go('/app/sendoff');
 }
 function firstLight(el) {
@@ -490,11 +601,13 @@ function rail(stop, screen, p) {
   ap(nav, links, h('button', { type: 'button', class: 'hardday-btn', onclick: () => openHardDay(stop) }, T().hardDay));
   return nav;
 }
-function openHardDay(stop) {
+async function openHardDay(stop) {
   const hd = stop.hardDay;
+  const mine = prof?.door === 'have' ? wordsBack(await byStopAll()) : null;
   const body = hd ? h('div', {}, h('div', { class: 'prose' }, paras(hd.body)),
     hd.bookRef ? h('div', { class: 'card' }, h('p', { class: 'bookref', text: `Read ${hd.bookRef.chapter}, ${hd.bookRef.section}.` })) : null)
     : h('div', {}, h('div', { class: 'prose' }, paras(T().hardDayDefaultBody)), h('div', { class: 'card' }, h('p', { class: 'bookref', text: T().hardDayDefaultRead })));
+  if (mine) ap(body, mine);
   ap(body, h('p', {}, h('button', { class: 'textlink', type: 'button', onclick: () => { closeSheet(true); openHelpNow(); } }, c.helpNow?.menuLabel || 'Need help now?')));
   openSheet(hd?.heading || T().hardDayDefaultHeading, body);
 }
@@ -511,6 +624,7 @@ async function viewStop(id, screen) {
   if (!prof?.door) prof = await db.saveProfile({ door: 'none' });
   const sc = stop.screens[screen];
   const p = await db.progress(stop.id);
+  const byStop = await byStopAll();
   p.visited = p.visited || {};
   document.title = `${SCREEN_NAMES[screen]}: ${stop.title} | Steps`;
   const nextName = SCREENS[SCREENS.indexOf(screen) + 1];
@@ -525,20 +639,23 @@ async function viewStop(id, screen) {
   };
   const nextBtn = (label, after) => h('button', { class: 'btn btn-primary', type: 'button', onclick: async () => { await persist(); if (after) await after(); } }, label);
   const toNext = async () => { if (nextName) { prof = await db.saveProfile({ lastStopId: stop.id, lastScreen: nextName }); go(`/app/stop/${stop.id}/${nextName}`); } };
-  const toSendoff = async (target, { finished = false } = {}) => {
+  const toSendoff = async (target, { finished = false, took = false } = {}) => {
     const ns = target || (nextName ? { id: stop.id, screen: nextName } : nextStop(stop));
     const wasD1 = prof?.door !== 'have';
     prof = await db.saveProfile({ lastStopId: ns.id, lastScreen: ns.screen });
     const q = new URLSearchParams();
     if (wasD1 && screen === 'review') q.set('d1', '1');
     if (finished) q.set('done', stop.id);
+    if (took) sessionStorage.setItem('fim-took', stop.id);
     go(`/app/sendoff${String(q) ? '?' + q : ''}`);
   };
   const body = h('div', { class: 'screen' }, h('h2', { class: 'heading', text: sc.heading }));
-  const quote = sc.quote ? h('p', { class: 'pull', text: sc.quote }) : null; // at most one line of book text
+  const quote = sc.quote ? h('div', { class: 'pull-wrap' }, h('p', { class: 'pull', text: sc.quote }), prof?.door === 'have' ? h('p', { class: 'share-mini' }, link(`/app/share?card=line&stop=${stop.id}&screen=${screen}`, N.shareLine, { class: 'textlink' }), ' ', draftNew('Share a book line')) : null) : null; // at most one line of book text
   const prose = () => h('div', { class: 'prose' }, paras(sc.body));
 
   if (screen === 'read') {
+    const carry = prof?.door === 'have' ? F.carriedInto(c, byStop, stop) : null;
+    if (carry) ap(body, echo(nf('carried', { n: carry.from.order }), carry.text, carry.prompt, 'Echo'));
     ap(body, quote, prose(), readCard(sc), ...verses(sc.verses));
     sc.prompts.forEach((pr, i) => ap(body, area('read', i, pr)));
     ap(body, ind, h('div', { class: 'btn-row' }, nextBtn(sc.cta || T().readIt, async () => { p.readAt = p.readAt || new Date().toISOString(); await db.saveProgress(p); await toNext(); })),
@@ -546,13 +663,22 @@ async function viewStop(id, screen) {
   } else if (screen === 'pulse') {
     ap(body, quote, ...verses(sc.verses), prose());
     sc.prompts.forEach((pr, i) => ap(body, area('pulse', i, pr)));
+    if (prof?.door === 'have') ap(body, seasonPicker(p, persist, ind));
     ap(body, ind, h('div', { class: 'btn-row' }, nextBtn(sc.cta, toNext)));
   } else if (screen === 'nameIt') {
     ap(body, quote, prose(), ...verses(sc.verses));
-    sc.prompts.forEach((pr, i) => ap(body, area('nameIt', i, pr)));
+    sc.prompts.forEach((pr, i) => {
+      if (stop.id === 's11' && i === 1) { // item 1: Stop 0's standstill sentence next to today's
+        const a = F.standstill0(byStop), b = String(p.answers.pulse?.[0] || '').trim();
+        if (a) ap(body, echo(N.atStop0, a, C.stopById(c, 's0').screens.nameIt.prompts[1], 'Echo'));
+        if (b) ap(body, echo(N.atPulse11, b, sc.prompts.length ? C.stopById(c, 's11').screens.pulse.prompts[0] : '', 'Echo'));
+      }
+      ap(body, area('nameIt', i, pr));
+    });
     ap(body, ind, h('div', { class: 'btn-row' }, nextBtn(sc.cta, toNext)));
   } else if (screen === 'build') {
-    ap(body, quote, prose(), ...verses(sc.verses), buildForm(stop, sc, p, ind, persist, toSendoff));
+    const season = F.seasonFor(c, byStop, stop);
+    ap(body, quote, prose(), ...verses(sc.verses), season ? seasonCard(season) : null, stop.id === 's11' ? ruleForm(stop, sc, p, ind, persist, toSendoff) : buildForm(stop, sc, p, ind, persist, toSendoff));
   } else if (screen === 'move') {
     ap(body, quote, prose(), ...verses(sc.verses), moveForm(stop, sc, p, persist, toSendoff, saveDeb));
   } else if (screen === 'help') {
@@ -586,6 +712,9 @@ async function viewStop(id, screen) {
     if (bi === 0) sc.prompts.forEach((q, i) => { const fid = `pray-${i}`; ap(body, h('div', { class: 'field' }, h('label', { for: fid, text: q }), h('textarea', { id: fid, autocomplete: 'off', oninput: (e) => { p.answers.pray.answers[i] = e.target.value; saveDeb(); } }, p.answers.pray.answers[i] || ''))); });
     ap(body, ind, h('div', { class: 'btn-row' }, nextBtn(sc.cta, () => toSendoff())));
   } else if (screen === 'review') {
+    const rule = stop.id === 's11' ? F.ruleOf(p) : null; const bs = F.buildStep(p);
+    if (rule) ap(body, h('div', { class: 'card echo' }, h('p', { class: 'label', style: 'margin-top:0' }, N.yourRule, ' ', draftNew('Echo')), h('ul', { class: 'rule-lines' }, rule.lines.map((l, i) => (String(l).trim() ? h('li', {}, h('b', {}, sc && C.stopById(c, 's11').screens.build.prompts[i], ' '), l) : null)))));
+    else if (bs) ap(body, echo(N.yourStep, bs.text, bs.dueDate ? `By ${fmtDay(bs.dueDate)}` : null, 'Echo'));
     ap(body, quote, reviewForm(stop, sc, p, persist, toSendoff, saveDeb, ind));
   }
   ap(body, bookPointer(sc));
@@ -641,7 +770,7 @@ function buildForm(stop, sc, p, ind, persist, toSendoff) {
     if (!ok) { form.querySelector('[aria-invalid=true]')?.focus(); return; }
     await persist();
     const open = (await db.all('steps')).find((x) => x.stopId === stop.id && !x.doneAt);
-    const rec = { id: open?.id || `${stop.id}-${Date.now()}`, stopId: stop.id, text: b.step.trim(), dueDate: b.dueDate, outcome: open?.outcome ?? null, createdAt: open?.createdAt || new Date().toISOString(), doneAt: null, lap: 1 };
+    const rec = { ...(open || {}), id: open?.id || `${stop.id}-${Date.now()}`, stopId: stop.id, text: b.step.trim(), dueDate: b.dueDate, outcome: open?.outcome ?? null, createdAt: open?.createdAt || new Date().toISOString(), doneAt: null, lap: open?.lap || 1 }; // keep any field a newer app added
     await db.put('steps', rec);
     flashSaved(ind); afterFirstSave();
     // L4: the reader taps this to open their own Messages app; nothing is sent by the app.
@@ -650,12 +779,105 @@ function buildForm(stop, sc, p, ind, persist, toSendoff) {
     after.replaceChildren(h('div', { class: 'card' }, h('h3', { text: 'Your step is set' }), h('p', { class: 'quiet', text: `By ${fmtDay(rec.dueDate)}` }),
       h('div', { class: 'btn-row' },
         h('button', { type: 'button', class: 'btn btn-secondary', onclick: () => ics.shareOrDownload(ics.stepIcs(rec), 'faith-in-motion-step.ics') }, T().addCalendar),
-        h('a', { class: 'btn btn-secondary', href: sms }, T().textPartner),
+        h('a', { class: 'btn btn-secondary', href: sms, onclick: () => { p.partnerText = { stepId: rec.id, at: new Date().toISOString(), dueDate: rec.dueDate }; persist(); } }, T().textPartner),
         h('button', { type: 'button', class: 'btn btn-primary', onclick: () => toSendoff({ id: stop.id, screen: 'move' }) }, 'Done for now')),
       h('p', { class: 'help', text: 'The calendar file and the text open on your phone. Only you choose to save or send them.' })));
     after.querySelector('button')?.focus();
   });
   return form;
+}
+// ---------- B. Seasons: the Pulse answer shapes the next step ----------
+function seasonPicker(p, persist, ind) {
+  const tracks = c.seasons?.tracks || []; if (!tracks.length) return null;
+  const cur = p.season?.id || '';
+  const fs = h('fieldset', { class: 'card season-pick', style: 'margin-top:18px' }, h('legend', { class: 'legend' }, N.seasonAsk, ' ', draftNew('Season question')));
+  [...tracks.map((tr) => [tr.id, tr.title]), ['', N.seasonNone]].forEach(([id, title]) => ap(fs, h('label', { class: 'radio-row' },
+    h('input', { type: 'radio', name: 'season', value: id, checked: id ? cur === id : p.season === null, onchange: async () => { p.season = id ? { id, at: new Date().toISOString() } : null; await persist(); flashSaved(ind); } }), h('span', { text: title }))));
+  return fs;
+}
+function seasonCard(tr) {
+  const [first, ...more] = tr.drawsFrom; const ref = (r) => r.replace(': ', ', ').split('; ')[0];
+  return h('div', { class: 'card season-card', 'data-season': tr.id },
+    h('p', { class: 'label', style: 'margin-top:0' }, nf('seasonFor', { title: tr.title }), ' ', draftNew('Season card')),
+    h('p', { class: 'season-practice', text: tr.description }),
+    tr.id === 'afraid' ? h('p', { class: 'season-short', style: 'font-weight:600', text: N.shortest }) : null,
+    h('p', { class: 'bookref', text: nf('readRef', { ref: ref(first) }) }),
+    more.length ? h('p', { class: 'help', text: more.map(ref).join('. ') + '.' }) : null);
+}
+// ---------- Item 4: Stop 11 Build saves the Rule of Motion as a set ----------
+function ruleForm(stop, sc, p, ind, persist, toSendoff) {
+  const r = F.ruleOf(p) || { lines: ['', '', '', ''], partner: '' };
+  const lines = r.lines.slice(); let partner = r.partner || '';
+  const form = h('form', { novalidate: true, class: 'rule-form' });
+  sc.prompts.forEach((pr, i) => {
+    const fid = `rule-${i}`; const isPartner = i === sc.prompts.length - 1;
+    form.append(h('div', { class: 'field' }, h('label', { for: fid, text: pr }), h('textarea', { id: fid, autocomplete: 'off', rows: isPartner ? 1 : 2, oninput: (e) => { if (isPartner) partner = e.target.value; else lines[i] = e.target.value; } }, isPartner ? partner : lines[i] || '')));
+  });
+  const after = h('div');
+  form.append(h('div', { class: 'btn-row' }, h('button', { type: 'submit', class: 'btn btn-primary' }, sc.cta)), ind, after);
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const first = form.querySelector('textarea');
+    if (!lines.some((x) => String(x || '').trim())) { fieldError(first, 'Write at least one line of your Rule of Motion.'); first.focus(); return; }
+    fieldError(first, null);
+    F.ruleWrite(p, lines, partner); await persist(); flashSaved(ind); afterFirstSave();
+    after.replaceChildren(h('div', { class: 'card' }, h('p', { class: 'quiet' }, N.ruleSaved, ' ', draftNew('Rule of Motion')),
+      h('div', { class: 'btn-row' }, link('/app/plan', N.planTitle, { class: 'btn btn-secondary' }), h('button', { type: 'button', class: 'btn btn-primary', onclick: () => toSendoff({ id: stop.id, screen: 'move' }) }, 'Done for now'))));
+    after.querySelector('a')?.focus();
+  });
+  return form;
+}
+// ---------- Item 5: "Your stop, in your words" (private; never a share card) ----------
+function recapCard(r, { compact = false } = {}) {
+  const row = (label, text) => (text ? h('div', { class: 'recap-row' }, h('p', { class: 'label', text: label }), h('p', { class: 'recap-text', text })) : null);
+  return h('section', { class: 'card recap', 'data-stop': r.stop.id, 'aria-label': `${N.recapTitle}: Stop ${r.stop.order}` },
+    compact ? h('h3', { text: `Stop ${r.stop.order}: ${r.stop.title}` }) : h('h3', {}, N.recapTitle, ' ', draftNew('Recap')),
+    row(N.named, r.named?.text),
+    r.rule ? h('div', { class: 'recap-row' }, h('p', { class: 'label', text: N.ruleTitle }), h('ul', { class: 'rule-lines' }, r.rule.lines.filter((x) => String(x).trim()).map((l) => h('li', { text: l })))) : row(N.myStep, r.step ? `${r.step.text}${r.step.dueDate ? ', ' + nf('by', { date: fmtDay(r.step.dueDate) }) : ''}` : ''),
+    row(N.howWent, r.verdictLabel), row(N.happened, r.happened),
+    r.reread ? h('p', { class: 'bookref', text: nf('reread', { ref: r.reread }) }) : null,
+    compact ? null : h('p', { class: 'help', text: N.privateNote }));
+}
+async function viewJournal() {
+  document.title = `${N.journalTitle} | Steps`;
+  const byStop = await byStopAll(); const steps = await db.all('steps');
+  const recaps = c.stops.map((st) => (byStop[st.id]?.review?.verdict || byStop[st.id]?.finishedAt ? F.recap(c, st, byStop[st.id], steps) : null)).filter(Boolean);
+  const notes = patternCard(byStop, steps);
+  mount(h('main', { class: 'page journal' }, topbar({ back: '/app/' }), h('div', { class: 'sheet' }, h('div', { class: 'sheet-inner' },
+    h('h1', { class: 'h1' }, N.journalTitle, ' ', draftNew('My journal')),
+    h('p', { class: 'help' }, N.privateNote, ' ', link('/app/steps', 'My steps', { class: 'textlink' })),
+    notes,
+    recaps.length ? recaps.map((r) => recapCard(r, { compact: true })) : h('p', { class: 'prose', text: N.journalEmpty })))));
+}
+// ---------- Item 4: My Faith in Motion plan (print friendly) ----------
+async function viewPlan() {
+  document.title = `${N.planTitle} | Steps`;
+  const byStop = await byStopAll(); const steps = await db.all('steps');
+  const pl = F.plan(c, byStop, steps);
+  const ref = (r) => (r ? h('p', { class: 'plan-ref', text: nf('inBook', { ref: r }) }) : null);
+  const sec = (title, ...kids) => h('section', { class: 'plan-sec' }, h('h2', { class: 'heading', text: title }), ...kids);
+  const empty = !pl.before && !pl.after && !pl.rule && !pl.steps.length;
+  const status = h('div', { role: 'status', 'aria-live': 'polite' });
+  const send = () => openSheet(N.send, h('div', {}, h('p', { class: 'prose', text: N.sendWarn }),
+    h('div', { class: 'btn-row' }, h('button', { class: 'btn btn-primary', type: 'button', onclick: async () => {
+      closeSheet(); const text = F.planText(c, pl);
+      if (navigator.share) { try { await navigator.share({ title: N.planTitle, text }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+      try { await navigator.clipboard.writeText(text); status.replaceChildren(h('p', { class: 'quiet', text: N.planCopied })); } catch { /* nothing sent */ }
+    } }, N.sendOk), h('button', { class: 'textlink', type: 'button', onclick: () => closeSheet() }, N.cancel))));
+  mount(h('main', { class: 'page plan' }, topbar({ back: '/app/' }), h('div', { class: 'sheet' }, h('div', { class: 'sheet-inner' },
+    h('h1', { class: 'h1' }, N.planTitle, ' ', draftNew('Plan page')),
+    empty ? h('p', { class: 'prose', text: N.planEmpty }) : null,
+    pl.before || pl.after ? sec(N.whereStarted,
+      pl.before ? h('div', { class: 'plan-pair' }, h('p', { class: 'label', text: N.before }), h('p', { class: 'plan-text', text: pl.before.text }), ref(pl.before.ref)) : null,
+      pl.after ? h('div', { class: 'plan-pair' }, h('p', { class: 'label', text: N.after }), h('p', { class: 'plan-text', text: pl.after.text }), ref(pl.after.ref)) : null) : null,
+    pl.rule ? sec(N.ruleTitle, h('ul', { class: 'rule-lines' }, pl.rule.lines.map((l, i) => (String(l).trim() ? h('li', {}, h('b', {}, pl.rule.prompts[i], ' '), l) : null))), ref(pl.rule.ref)) : null,
+    pl.steps.length ? sec(N.stepsTitle, h('ol', { class: 'timeline' }, pl.steps.map((x) => h('li', {}, h('p', { class: 'step', style: 'margin:0', text: x.text }),
+      h('p', { class: 'meta', style: 'margin:4px 0 0', text: `Stop ${x.stop?.order}. ${x.doneAt ? N.taken : N.notTaken}.${x.outcome ? ' ' + (F.VERDICT[x.outcome] || '') + '.' : ''}` }),
+      x.happened ? h('p', { class: 'help', text: x.happened }) : null, ref(x.ref))))) : null,
+    pl.next ? sec(N.nextTitle, h('p', { class: 'plan-text', text: pl.next.text }), ref(pl.next.ref)) : null,
+    pl.partner ? sec(N.partnerTitle, h('p', { class: 'plan-text', text: pl.partner.text }), ref(pl.partner.ref)) : null,
+    empty ? null : h('div', { class: 'btn-row no-print' }, h('button', { class: 'btn btn-primary', type: 'button', onclick: () => print() }, N.print), h('button', { class: 'btn btn-secondary send-partner', type: 'button', onclick: send }, N.send)),
+    status, pl.before ? h('div', { class: 'no-print' }, onwardRow()) : null))));
 }
 function checkbox(label, checked, onchange) {
   return h('label', { class: 'check' }, h('input', { type: 'checkbox', checked, onchange }),
@@ -681,7 +903,7 @@ function moveForm(stop, sc, p, persist, toSendoff, saveDeb) {
       e.currentTarget.disabled = true; await firstLight(document.querySelector('.plate'));
       p.move.doneAt = new Date().toISOString(); await persist();
       const st = (await db.all('steps')).find((x) => x.stopId === stop.id && !x.doneAt); if (st) { st.doneAt = p.move.doneAt; await db.put('steps', st); }
-      sessionStorage.setItem('fim-walked', stop.id); toSendoff();
+      sessionStorage.setItem('fim-walked', stop.id); toSendoff(undefined, { took: true });
     } }, T().tookStep),
     h('button', { class: 'btn btn-secondary', type: 'button', onclick: async () => { await persist(); toSendoff(); } }, sc.cta)));
   return wrap;
@@ -705,6 +927,11 @@ function reviewForm(stop, sc, p, persist, toSendoff, saveDeb, ind) {
   ap(wrap, ind, h('div', { class: 'prose' }, paras(sc.body)), ...verses(sc.verses));
   if (prof?.door === 'have') ap(wrap, h('div', { class: 'btn-row' }, link(`/app/share?card=stop&stop=${stop.id}`, 'Share that I finished this stop', { class: 'btn btn-secondary' })));
   if (stop.order === 3 || stop.order === 11) ap(wrap, h('div', { class: 'card' }, h('h3', { text: c.testimony.heading }), h('p', { class: 'quiet', text: c.testimony.intro }), link(`/app/testimony?stop=${stop.id}`, 'Send a testimony', { class: 'btn btn-secondary' })));
+  const recapBox = h('div', { class: 'recap-slot' });
+  const drawRecap = async () => { const r = F.recap(c, stop, p, await db.all('steps')); recapBox.replaceChildren(r ? recapCard(r) : ''); };
+  wrap.addEventListener('input', debounce(drawRecap, 500)); wrap.addEventListener('change', () => setTimeout(drawRecap, 50));
+  drawRecap();
+  ap(wrap, recapBox);
   ap(wrap, h('div', { class: 'btn-row' }, h('button', { class: 'btn btn-primary', type: 'button', onclick: async () => { p.finishedAt = p.finishedAt || new Date().toISOString(); await persist(); toSendoff(nextStop(stop), { finished: true }); } }, sc.cta)));
   return wrap;
 }
@@ -728,6 +955,9 @@ function viewSendoff() {
   const done = C.stopById(c, q.get('done'));
   const next = done ? c.stops[c.stops.indexOf(done) + 1] : null;
   const back = h('p', { style: 'margin-top:14px' }, link(d1 ? '/app/start' : '/app/', T().backToday, { class: 'textlink' }));
+  // Item 3: right after "I took my step", offer the Step card for the stop the step belongs to.
+  const took = C.stopById(c, sessionStorage.getItem('fim-took')); sessionStorage.removeItem('fim-took');
+  const shareTook = () => (took && !d1 ? h('div', { class: 'btn-row share-took' }, link(`/app/share?card=step&stop=${took.id}`, N.shareStep, { class: 'btn btn-secondary' }), draftNew('Share a Step card')) : null);
   let fg;
   if (done && d1) {
     fg = [h('p', { class: 'eyebrow', text: tf('stopDone', { n: done.order }) }), h('h1', { text: T().tryEnd }),
@@ -737,17 +967,17 @@ function viewSendoff() {
     document.title = `${tf('stopDone', { n: done.order })} | Steps`;
     fg = [h('p', { class: 'eyebrow', text: tf('stopDone', { n: done.order }) }), h('h1', { text: T().stopDoneHeading }),
       h('p', { class: 'lede', text: T().stopDoneWarm }),
-      h('div', { class: 'btn-row' }, link(`/app/stop/${next.id}/read`, tf('goToStop', { n: next.order, title: next.title }), { class: 'btn btn-primary btn-next' })), devoMention(), back];
+      h('div', { class: 'btn-row' }, link(`/app/stop/${next.id}/read`, tf('goToStop', { n: next.order, title: next.title }), { class: 'btn btn-primary btn-next' })), shareTook(), devoMention(), back];
   } else if (done) {
     document.title = `${T().routeDone} | Steps`;
     fg = [h('p', { class: 'eyebrow', text: tf('stopDone', { n: done.order }) }), h('h1', { text: T().routeDone }),
       h('p', { class: 'lede', text: T().routeDoneWarm }),
-      h('div', { class: 'btn-row' }, link('/app/route', T().seeRoute, { class: 'btn btn-primary btn-next' })), devoMention(), back];
+      h('div', { class: 'btn-row' }, link('/app/route', T().seeRoute, { class: 'btn btn-primary btn-next' }), link('/app/share?card=route&stop=s11', N.routeShare, { class: 'btn btn-secondary share-route' })), h('p', {}, draftNew('All 12 stops card')), devoMention(), back];
   } else {
     fg = [h('h1', { text: d1 ? T().tryEnd : fromShare ? T().shareSendoff : T().sendoff }),
       d1 ? h('div', { class: 'btn-row' }, link('/app/start/book', T().getBook, { class: 'btn btn-primary' }), ext(SIGNUP_URL(), T().devoCta, { class: 'btn btn-secondary devo-link' })) : null,
       !d1 && !fromShare && stop.screens[screen] ? h('p', { class: 'lede quiet-light', text: tf('upNextIn', { n: stop.order, screen: SCREEN_NAMES[screen] }) }) : null,
-      back];
+      shareTook(), back];
   }
   mount(h('main', { class: `dark full sendoff${done ? ' stop-complete' : ''}` },
     h('div', { class: 'bg' }, img(stopImg(next || stop) || c.img.items.door1, { eager: true, altOverride: '' }), done && !reducedMotion() ? h('div', { class: 'glint', 'aria-hidden': 'true' }) : null), topbar(),
@@ -765,7 +995,9 @@ async function viewSteps() {
     steps.length ? h('ol', { class: 'timeline' }, steps.map((st) => { const stop = C.stopById(c, st.stopId);
       return h('li', {}, h('p', { class: 'step', style: 'margin:0', text: st.text }),
         h('p', { class: 'meta', style: 'margin:4px 0 0', text: `Stop ${stop?.order}, ${stop ? C.chapterLabel(stop) : ''}. By ${fmtDay(st.dueDate)}.${st.doneAt ? ' Taken.' : ''}${st.outcome ? ' ' + out[st.outcome] + '.' : ''}` })); }))
-      : h('p', { class: 'prose', text: c.door1.home?.noStepYet || 'No steps yet.' })))));
+      : h('p', { class: 'prose', text: c.door1.home?.noStepYet || 'No steps yet.' }),
+    steps.length ? sundayIcsBtn() : null,
+    h('p', { style: 'margin-top:20px' }, link('/app/journal', N.journalTitle, { class: 'textlink' }), ' \u00b7 ', link('/app/plan', N.planTitle, { class: 'textlink' }))))));
 }
 
 // ---------- Share cards ----------
@@ -773,14 +1005,22 @@ async function viewShare() {
   document.title = 'Share a card | Steps';
   const q = new URLSearchParams(location.search);
   const have = prof?.door === 'have';
-  const kinds = [['step', 'Step'], ['verse', 'Verse'], ['quote', 'Book quote'], ['stop', 'Stop finished'], ['walk', 'Walk with me']].filter(([k]) => have || !['step', 'stop'].includes(k));
+  const byStop = await byStopAll(); const allSteps = await db.all('steps');
+  const routeDone = !!(byStop.s11?.finishedAt);
+  const lineStop = C.stopById(c, q.get('stop')); const lineScreen = lineStop?.screens[q.get('screen')]?.quote ? q.get('screen') : null;
+  const kinds = [['step', 'Step'], ['verse', 'Verse'], ['quote', 'Book quote'], ['stop', 'Stop finished'], ['walk', 'Walk with me'],
+    ...(lineScreen ? [['line', N.lineChip]] : []), ...(routeDone ? [['route', N.routeChip]] : []), ['onward', N.onwardChip]].filter(([k]) => have || !['step', 'stop', 'route', 'onward'].includes(k));
   let kind = kinds.some(([k]) => k === q.get('card')) ? q.get('card') : kinds[0][0];
   let size = share.SIZES[q.get('size')] ? q.get('size') : 'post';
   let quoteIdx = Number(q.get('q') || 0);
-  const stop = C.stopById(c, q.get('stop')) || nextScreen().stop;
+  // Item 3: with no stop named, the Step card uses the stop of the step just taken, and the Stop card the stop just finished.
+  const lastTaken = allSteps.filter((x) => x.doneAt).sort((a, b) => b.doneAt.localeCompare(a.doneAt))[0];
+  const lastDone = Object.values(byStop).filter((x) => x.finishedAt).sort((a, b) => b.finishedAt.localeCompare(a.finishedAt))[0];
+  const fallback = kind === 'step' && lastTaken ? C.stopById(c, lastTaken.stopId) : kind === 'stop' && lastDone ? C.stopById(c, lastDone.stopId) : null;
+  const stop = C.stopById(c, q.get('stop')) || fallback || nextScreen().stop;
   const cards = Array.isArray(c.share) ? c.share : c.share.cards;
   const vow = C.verseOfWeek(c) || { text: stop.screens.pulse.verses[0]?.text, ref: stop.screens.pulse.verses[0]?.ref, stop };
-  const tags = { step: 'card-step', verse: 'card-verse', quote: 'card-quote', stop: 'card-stop', walk: 'invite-walk' };
+  const tags = { step: 'card-step', verse: 'card-verse', quote: 'card-quote', stop: 'card-stop', walk: 'invite-walk', line: 'card-quote', route: 'card-route', onward: 'card-onward' };
   const publicLine = h('input', { id: 'pub', type: 'text', maxlength: '80', autocomplete: 'off' });
   const canvasBox = h('div'); const meta = h('p', { class: 'help', 'aria-live': 'polite' }); const draftNote = h('div');
   const pubWrap = h('div', { class: 'field' }, h('label', { for: 'pub' }, 'A public line ', h('span', {}, '(optional, 80 characters)')), publicLine, h('p', { class: 'help', text: 'Only what you type here goes on the card. Your journal never does.' }));
@@ -791,13 +1031,16 @@ async function viewShare() {
     if (kind === 'step') return { kind, headline: `I took my ${chLabel} step: ${stop.title}.`, sub: publicLine.value.trim() || null, plate: c.img.items['share-road'] };
     if (kind === 'stop') return { kind, headline: `I finished Stop ${stop.order}: ${stop.title}.`, plate: c.img.items['share-road'] };
     if (kind === 'verse') return { kind, headline: vow.text, sub: `${vow.ref} (ESV). From ${vow.stop ? C.chapterLabel(vow.stop) : 'a chapter'} of Faith in Motion`, plate: c.img.items['share-water'] };
+    if (kind === 'line') return { kind, headline: lineStop.screens[lineScreen].quote, sub: `From ${C.chapterLabel(lineStop)} of Faith in Motion`, plate: c.img.items['share-water'] };
+    if (kind === 'route') return { kind, headline: N.routeHeadline, plate: c.img.items['share-road'] };
+    if (kind === 'onward') return { kind, headline: N.onwardHeadline, plate: c.img.items['share-walk'] };
     if (kind === 'quote') { const cd = cards[quoteIdx % cards.length]; return { kind, headline: cd.quote, sub: cd.attribution.replace(/\s*faithinmotionbook\.com\/app\s*$/, ''), plate: c.img.items['share-water'] }; }
     return { kind, headline: (c.wwm?.cardLines || ["I'm taking one step a week with Faith in Motion.", 'Walk with me?']).join(' '), plate: c.img.items['share-walk'] };
   };
   let current;
   async function draw() {
-    draftNote.replaceChildren(kind !== 'walk' ? '' : draftPill('Walk with me invite') || (!c.config.inviteCopyApproved && C.isPreviewHost() ? h('span', { class: 'draft-note', text: T().draftCopy }) : ''));
-    pubWrap.hidden = kind !== 'step'; anotherQuote.hidden = kind !== 'quote';
+    draftNote.replaceChildren(['line', 'route', 'onward'].includes(kind) ? draftNew('New card') || '' : kind !== 'walk' ? '' : draftPill('Walk with me invite') || (!c.config.inviteCopyApproved && C.isPreviewHost() ? h('span', { class: 'draft-note', text: T().draftCopy }) : ''));
+    pubWrap.hidden = kind !== 'step'; anotherQuote.hidden = kind !== 'quote'; walkExtras.hidden = kind !== 'walk';
     const data = { ...cardData(), coverSrc: '/app/img/cover-480.webp' };
     current = await share.render(data, size);
     Object.assign(current.canvas, { className: 'preview-canvas' });
@@ -809,17 +1052,29 @@ async function viewShare() {
   const chipRow = (opts, getv, setv, label) => { const row = h('div', { class: 'chips', role: 'group', 'aria-label': label });
     opts.forEach(([k, l]) => row.append(h('button', { type: 'button', class: 'chip', 'data-k': k, 'aria-pressed': String(getv() === k), onclick: (e) => { setv(k); row.querySelectorAll('.chip').forEach((b) => b.setAttribute('aria-pressed', 'false')); e.currentTarget.setAttribute('aria-pressed', 'true'); draw(); } }, l))); return row; };
   publicLine.addEventListener('input', debounce(draw, 300));
+  // Item 3: Walk with me also goes out as a text or a plain link (the desktop fallback).
+  const INVITE = 'https://faithinmotionbook.com/app/?src=invite';
+  const linkStatus = h('p', { class: 'help', role: 'status', 'aria-live': 'polite' });
+  const copyLink = async (url) => { try { await navigator.clipboard.writeText(url); linkStatus.textContent = N.copied; } catch { linkStatus.textContent = url; } };
+  const smsHref = () => `sms:${isIOS() ? '?&' : '?'}body=${encodeURIComponent(`${N.inviteLine} ${INVITE}`)}`;
+  const walkExtras = h('div', { class: 'btn-row walk-extras' }, h('a', { class: 'btn btn-secondary text-friend', href: smsHref() }, N.textFriend), h('button', { class: 'btn btn-secondary copy-link', type: 'button', onclick: () => copyLink(INVITE) }, N.copyLink), draftNew('Walk with me links'));
+  const afterShare = h('div');
   mount(h('main', { class: 'page' }, topbar({ back: have ? '/app/' : '/app/start' }), h('div', { class: 'sheet' }, h('div', { class: 'sheet-inner' },
     h('h1', { class: 'h1', text: 'Share a card' }),
     h('p', { class: 'legend', text: 'Card' }), chipRow(kinds, () => kind, (v) => { kind = v; }, 'Card'),
     h('p', { class: 'legend', text: 'Size' }), chipRow(Object.entries(share.SIZE_LABELS), () => size, (v) => { size = v; }, 'Size'),
-    pubWrap, draftNote, anotherQuote, canvasBox, meta,
+    pubWrap, draftNote, anotherQuote, canvasBox, meta, walkExtras, linkStatus,
     h('div', { class: 'btn-row' }, h('button', { class: 'btn btn-primary', type: 'button', onclick: async () => {
       const url = `${c.config.appUrl}?src=${tags[kind]}`;
       const text = kind === 'walk' ? (c.wwm?.shareText || 'Walk with me?') : 'Faith in Motion by Herman Davis.';
       const r = await share.shareCanvas(current.canvas, `faith-in-motion-${kind}-${size}.png`, text, url);
-      if (r !== 'cancelled') go('/app/sendoff?share=1');
-    } }, 'Share or download'))))));
+      if (r === 'downloaded') { // desktop: the image is saved, so offer the link to paste next to it
+        const u = kind === 'walk' ? INVITE : url;
+        afterShare.replaceChildren(h('div', { class: 'card after-download' }, h('p', {}, N.savedDownload, ' ', draftNew('Copy link fallback')),
+          h('div', { class: 'btn-row' }, h('button', { class: 'btn btn-secondary copy-link', type: 'button', onclick: () => copyLink(u) }, N.copyLink), link('/app/sendoff?share=1', N.continue, { class: 'btn btn-primary' }))));
+        afterShare.querySelector('button')?.focus();
+      } else if (r !== 'cancelled') go('/app/sendoff?share=1');
+    } }, 'Share or download')), afterShare))));
   await draw();
 }
 
@@ -877,7 +1132,7 @@ function viewTestimony() {
 // ---------- Backup (local file only; nothing uploaded) ----------
 function viewBackup() {
   document.title = 'Backup and restore | Steps';
-  const status = h('div', { role: 'status', 'aria-live': 'polite' });
+  const status = h('div', { role: 'status', 'aria-live': 'polite' }); const autoBox = h('div');
   const doExport = async () => {
     const data = await db.exportAll(); // no outbox
     const payload = { app: 'faith-in-motion-steps', schemaVersion: 1, exportedAt: new Date().toISOString(), data };
@@ -903,7 +1158,14 @@ function viewBackup() {
     h('h1', { class: 'h1', text: 'Backup and restore' }),
     h('p', { style: 'font-family:var(--f-read);font-size:21px', text: account.signedIn() ? "You're signed in, so your answers are encrypted and synced to your account. A backup is a file you save yourself, kept wherever you put it." : 'Your answers live in this browser on this phone unless you sign in to sync. A backup is a file you save yourself. Nothing is uploaded.' }),
     h('div', { class: 'btn-row' }, h('button', { class: 'btn btn-primary', type: 'button', onclick: doExport }, T().exportBtn)),
-    h('div', { class: 'field', style: 'margin-top:28px' }, h('label', { for: 'bk-file', text: T().importBtn }), fileIn), status))));
+    h('div', { class: 'field', style: 'margin-top:28px' }, h('label', { for: 'bk-file', text: T().importBtn }), fileIn), status, autoBox))));
+  // The copy the app saved on this phone before its last data upgrade (never uploaded).
+  F.latestSnapshot().then((snap) => {
+    if (!snap?.data || validateBackup(snap).length) return;
+    const when = new Date(snap.exportedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    autoBox.replaceChildren(h('div', { class: 'card', style: 'margin-top:28px' }, h('p', { style: 'font-weight:600' }, N.autoCopy, ' ', draftNew('Automatic copy')), h('p', { class: 'help', text: when }),
+      h('button', { class: 'btn btn-secondary', type: 'button', onclick: async () => { if (!confirm(nf('autoConfirm', { when }))) return; await db.replaceAll(snap.data); toast('Backup restored.'); go('/app/'); } }, N.autoRestore)));
+  }).catch(() => {});
 }
 function validateBackup(j) {
   const p = [];
@@ -1048,6 +1310,7 @@ async function registerSW() {
 // ---------- Boot ----------
 (async function boot() {
   c = await C.load();
+  try { await F.upgrade(db); } catch { /* the upgrade never rewrites data; a failure only means it runs again next time */ }
   c.helpNow = await fetch('/app/content/' + (c.manifest.helpNow?.file || 'help-now.json')).then((r) => (r.ok ? r.json() : null)).catch(() => null);
   if (new URLSearchParams(location.search).get('src')?.startsWith('invite') && !(await db.profile())?.door) history.replaceState({}, '', '/app/start' + location.search);
   await render();

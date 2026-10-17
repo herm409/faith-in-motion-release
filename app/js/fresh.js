@@ -1,0 +1,48 @@
+// New wording for the steps-five preview. EVERY string here is "Draft, pending Herman" and shows a draft pill
+// while config.newWordingDraft is true. Book prompts, quotes and section titles are not here: they are read from content.
+export const N = {
+  // 1. Echo earlier answers
+  atStop0: 'At Stop 0 you wrote:', atStopN: 'At Stop {n} you wrote:', atPulse11: 'At the start of this stop you wrote:', carried: 'You carried this from Stop {n}:',
+  yourStep: 'Your step for this stop', yourRule: 'Your Rule of Motion',
+  // 2. Close the loop
+  loopAsk: 'Did you take your step?', loopYes: 'Yes', loopNotYet: 'Not yet, new date', loopHoly: 'Holy wait',
+  loopHolySaved: 'Saved as a holy wait. Keep today faithful while you wait.',
+  mcIntro: 'Once a month, the same three questions. Only you see your earlier answers next to this one.',
+  sundayIcs: 'Add a weekly Sunday reminder', sundayIcsDone: 'Sunday reminder file ready.', sundayWrote: 'When you set it, you wrote:',
+  // 3. Sharing
+  shareStep: 'Share a Step card', copyLink: 'Copy link', copied: 'Link copied.', textFriend: 'Text a friend',
+  savedDownload: 'The card saved to your downloads. Copy the link to send with it.', continue: 'Continue',
+  routeChip: 'All 12 stops', routeHeadline: 'I walked all 12 stops of Faith in Motion.', routeShare: 'Share an "all 12 stops" card',
+  shareVerse: 'Share this verse', shareLine: 'Share this line', lineChip: 'This line',
+  inviteLine: 'Walk with me? I\'m taking one step a week with Faith in Motion.',
+  // 4. Plan
+  planTitle: 'My Faith in Motion plan', planMenu: 'My plan', before: 'My standstill at Stop 0', after: 'My standstill at Stop 11',
+  ruleTitle: 'My Rule of Motion', stepsTitle: 'Every step and how it went', nextTitle: 'My next step', partnerTitle: 'Holding me to it',
+  inBook: 'In the book: {ref}', print: 'Print or save as PDF', send: 'Send to my partner',
+  sendWarn: 'This sends your private answers to the person you choose. Only send it to someone you trust. Nothing leaves this phone until you pick them.',
+  sendOk: 'Choose who gets it', cancel: 'Cancel', planEmpty: 'Your plan fills in as you walk the stops.', planCopied: 'Plan copied. Paste it into a message to your partner.',
+  taken: 'Taken', notTaken: 'Not taken yet', ruleSaved: 'Your Rule of Motion is saved as a set.',
+  // 5. Recap and journal
+  recapTitle: 'Your stop, in your words', named: 'What I named', myStep: 'My step', howWent: 'How it went', happened: 'What happened',
+  reread: 'Reread: {ref}', privateNote: 'Only you see this. It never goes on a share card.', journalTitle: 'My journal', journalMenu: 'My journal',
+  journalEmpty: 'Your words from each stop collect here after its Review.', by: 'by {date}',
+  // A. Words come back
+  earlier: 'Earlier you wrote', ruleSays: 'Your Rule of Motion says',
+  // B. Seasons
+  seasonAsk: 'Which season fits right now? (optional)', seasonNone: 'None of these', seasonFor: 'For this season: {title}',
+  shortest: 'Make it the shortest step you can take: one clear duty within 72 hours.', readRef: 'Read: {ref}',
+  // C. Patterns
+  patternsTitle: 'What your steps show',
+  pMoved: 'You have given your step a new date {n} times (Stops {list}). Chapter 4 says: "{quote}" Reread {ref}.',
+  pBuried: 'Most of your reviews say Buried ({n} of {of}). Reread {ref}.',
+  pTraded: 'Most of your reviews say Traded ({n} of {of}). Keep going. Reread {ref}.',
+  pHoly: 'Most of your reviews say Holy wait ({n} of {of}). Reread {ref}.',
+  pOnTime: 'You took {n} of {of} steps on or before the date you set.',
+  // D. Partner
+  partnerAsk: 'Did {partner} check on you?', partnerDefault: 'your partner', partnerYes: 'Yes', partnerNo: 'Not yet', partnerTold: 'What did you tell them?', save: 'Save', savedNote: 'Saved to this step.',
+  // E. Before and after
+  whereStarted: 'Where you started', shareOnward: 'Share a card', tellHerman: 'Tell Herman what changed',
+  onwardChip: 'Still walking', onwardHeadline: "I'm walking Faith in Motion one faithful step at a time.",
+  // Upgrade safety copy
+  autoCopy: 'Automatic copy from before the last update', autoRestore: 'Restore the automatic copy', autoConfirm: "Replace this phone's answers with the automatic copy from {when}?",
+};

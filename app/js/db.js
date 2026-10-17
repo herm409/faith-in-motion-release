@@ -181,7 +181,16 @@ export function blankProgress(stopId) {
 export async function progress(stopId) {
   return (await get('stopProgress', stopId)) || blankProgress(stopId);
 }
-export async function saveProgress(p) { await put('stopProgress', p); return p; }
+// A screen holds the record it loaded. Before writing, carry over any field it does not know about (added since by
+// another device, a newer app, or another part of this app), so a save never drops it. Only adds; never overwrites.
+export async function saveProgress(p) {
+  const cur = await get('stopProgress', p.stopId);
+  if (cur) {
+    for (const k of Object.keys(cur)) if (!(k in p)) p[k] = cur[k];
+    if (cur.answers && typeof cur.answers === 'object') { p.answers = p.answers || {}; for (const k of Object.keys(cur.answers)) if (!(k in p.answers)) p.answers[k] = cur.answers[k]; }
+  }
+  await put('stopProgress', p); return p;
+}
 
 export async function exportAll() {
   const [p, sp, st, mc] = await Promise.all([profile(), all('stopProgress'), all('steps'), all('motionChecks')]);

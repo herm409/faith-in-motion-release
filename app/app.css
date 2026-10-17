@@ -270,3 +270,23 @@ input:focus-visible, textarea:focus-visible { outline: 2px solid var(--amber); o
 .acct-loaded p { margin: 6px 0 0; }
 .acct-loaded .acct-loaded-title { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: 1.3rem; line-height: 1.25; color: var(--navy); }
 .fork-signin { margin-top: 6px; }
+/* ---------- steps-five (Draft, pending Herman) ---------- */
+.draft-new { display: inline-block; vertical-align: middle; font: 600 11px/1.2 var(--f-ui); color: var(--umber); background: rgba(232, 160, 74, .12); border: 1px dashed rgba(232, 160, 74, .7); border-radius: 999px; padding: 3px 9px; margin: 4px 0; white-space: nowrap; letter-spacing: .02em; }
+.dark .draft-new { color: var(--first-light); border-color: rgba(250, 212, 145, .5); background: rgba(250, 212, 145, .08); }
+.echo { border-left: 3px solid var(--amber); }
+.echo-text, .recap-text, .plan-text { font-family: var(--f-read); font-size: 20px; line-height: 1.4; margin: 4px 0; }
+.recap .label, .plan-pair .label { margin: 12px 0 0; }
+.recap h3 { margin-top: 0; }
+.rule-lines { padding-left: 18px; margin: 6px 0; } .rule-lines li { margin: 6px 0; font-family: var(--f-read); font-size: 19px; }
+.share-mini { margin: 6px 0 0; font-size: 15px; }
+.pull-wrap .pull { margin-bottom: 4px; }
+.loop { margin-top: 12px; } .loop .legend { margin-bottom: 4px; }
+.pattern-list { padding-left: 18px; margin: 6px 0 0; } .pattern-list li { margin: 8px 0; line-height: 1.45; }
+.season-card .season-practice { font-family: var(--f-read); font-size: 19px; margin: 6px 0; }
+.plan-sec { margin-top: 26px; } .plan-ref { font: 500 14px/1.4 var(--f-ui); color: var(--umber); margin: 2px 0 10px; }
+.partner-check .chips { margin: 8px 0; }
+@media print {
+  .topbar, .no-print, .draft-new, .bsheet, .menu-btn { display: none !important; }
+  .page, .sheet, .sheet-inner { background: #fff !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; }
+  .plan-sec { break-inside: avoid; }
+}

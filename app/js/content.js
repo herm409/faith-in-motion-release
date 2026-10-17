@@ -51,14 +51,14 @@ export async function load() {
   const version = await maybe('/app/content/version.json');
   const has = (f) => !version || (version.files || []).includes(f);
   const opt = (f) => (has(f) ? maybe('/app/content/' + f) : Promise.resolve(null));
-  const [manifest, config, door1, share, testimony, vow, wwm, ui, img, credits, esv] = await Promise.all([
+  const [manifest, config, door1, share, testimony, vow, wwm, ui, img, credits, esv, seasons] = await Promise.all([
     j('/app/content/manifest.json'), j('/app/config.json'), j('/app/content/door1-preview.json'), j('/app/content/share-cards.json'),
     j('/app/content/testimony-form.json'), opt('verse-of-week.json'), opt('walk-with-me.json'), opt('ui-strings.json'),
-    j('/app/img/manifest.json'), j('/app/img/credits.json'), fetch('/app/content/esv-notice.txt').then((r) => r.text()),
+    j('/app/img/manifest.json'), j('/app/img/credits.json'), fetch('/app/content/esv-notice.txt').then((r) => r.text()), opt('seasons.json'),
   ]);
   const stops = await Promise.all(manifest.stops.map((s) => j('/app/content/' + s.file)));
   stops.sort((a, b) => a.order - b.order);
-  cache = { manifest, config, door1, share, testimony, vow, wwm, version, img, credits, esv: esv.trim(), stops,
+  cache = { manifest, config, door1, share, testimony, vow, wwm, version, seasons, img, credits, esv: esv.trim(), stops,
     strings: { ...DEFAULT_STRINGS, ...(ui || {}) }, hasUiStrings: !!ui };
   return cache;
 }

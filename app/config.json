@@ -12,5 +12,7 @@
   "reviewPaperbackUrl": "https://www.amazon.com/review/create-review?asin=B0HL396MH6",
   "appUrl": "https://faithinmotionbook.com/app/",
   "signupUrl": "https://faithinmotionbook.com/#notify-form",
-  "introPdf": "/assets/faith-in-motion-introduction-sample.pdf"
+  "introPdf": "/assets/faith-in-motion-introduction-sample.pdf",
+  "newWordingDraft": true,
+  "_newWordingDraftNote": "steps-five preview: true shows a 'Draft, pending Herman' pill next to every new piece of wording. Set to false at ship; nothing else changes."
 }
