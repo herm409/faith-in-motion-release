@@ -11,3 +11,64 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
     Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+
+# Do not serve server source, dev tools or working notes from the preview.
+[[redirects]]
+  from = "/netlify/*"
+  to = "/404"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/app/tools/*"
+  to = "/404"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/netlify.toml"
+  to = "/404"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/COMP-NOTES.md"
+  to = "/404"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/DESIGN.md"
+  to = "/404"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/LAUNCH-RESEARCH.md"
+  to = "/404"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/README.md"
+  to = "/404"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/RESTYLE-REFS.md"
+  to = "/404"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/app/DESIGN.md"
+  to = "/404"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/app/CREDITS.md"
+  to = "/404"
+  status = 404
+  force = true
