@@ -1,6 +1,6 @@
 // Share cards drawn on <canvas>. Never journal text, counts, streaks, likes or rankings.
 export const SIZES = { story: [1080, 1920], post: [1080, 1350], square: [1080, 1080], wide: [1200, 630] };
-export const SIZE_LABELS = { story: 'IG story', post: 'IG post', square: 'Square', wide: 'X / Facebook' };
+export const SIZE_LABELS = { story: 'Instagram story', post: 'Instagram post', square: 'Square', wide: 'X / Facebook' };
 const CREAM = '#F4ECDF', NAVY = '#122040', VALLEY = '25,41,53', LIGHT = '#FAD491';
 const imgCache = new Map();
 function loadImg(src) {
@@ -104,13 +104,19 @@ export async function render(card, sizeKey) {
   }
   return { canvas: c, contrast: measured, veil };
 }
-export async function shareCanvas(canvas, filename, text, url) {
-  const blob = await new Promise((r) => canvas.toBlob(r, 'image/png'));
-  const file = new File([blob], filename, { type: 'image/png' });
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file], text, url }); return 'shared'; } catch (e) { if (e.name === 'AbortError') return 'cancelled'; }
-  }
-  const u = URL.createObjectURL(blob); const a = Object.assign(document.createElement('a'), { href: u, download: filename });
+// The picture is made ahead of the tap (JPEG, a fraction of the PNG size), so the tap opens the share sheet right away.
+export async function toFile(canvas, name) {
+  const blob = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', 0.92));
+  return new File([blob], name, { type: 'image/jpeg' });
+}
+export function save(file) {
+  const u = URL.createObjectURL(file); const a = Object.assign(document.createElement('a'), { href: u, download: file.name });
   document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
-  return 'downloaded';
+}
+// One tap: the phone's share sheet with the picture and caption where it can take a picture; otherwise the picture is saved.
+export async function shareFile(file, text) {
+  if (navigator.canShare?.({ files: [file] })) {
+    try { await navigator.share({ files: [file], text }); return 'shared'; } catch (e) { if (e.name === 'AbortError') return 'cancelled'; }
+  }
+  save(file); return 'downloaded';
 }

@@ -377,6 +377,8 @@ async function viewToday() {
     h('blockquote', { class: 'verse', style: 'margin:8px 0' }, h('p', { text: vow.text }), h('cite', { text: `${vow.ref} (ESV)` })),
     h('p', { class: 'quiet', text: `Read it in ${vow.readIn}` }),
     h('p', { class: 'share-mini' }, link('/app/share?card=verse', N.shareVerse, { class: 'textlink' }), ' ', draftNew('Share verse'))) : null;
+  const prog = prof?.door === 'have' && (steps.some((x) => x.doneAt) ? 'step' : Object.values(byStop).some((x) => x.finishedAt) ? 'stop' : '');
+  const progEl = prog ? h('p', { class: 'share-mini' }, link(`/app/share?card=${prog}`, c.share.ui?.shareProgress || 'Share my progress', { class: 'textlink' })) : null;
   const motion = await motionCheck(byStop);
   const partner = partnerFollowUp(steps, byStop);
   const notes = patternCard(byStop, steps);
@@ -384,7 +386,7 @@ async function viewToday() {
   const upd = updateWaiting ? h('p', { class: 'update-line' }, T().updated + ' ', h('button', { class: 'textlink', type: 'button', onclick: applyUpdate }, 'Reload')) : null;
   mount(h('main', { class: 'today' }, topbar(),
     h('div', { class: 'band' }, img(stopImg(stop), { eager: true, altOverride: stopAlt(stop) }), h('p', { class: 'lockup', 'aria-hidden': 'true' }, h('b', {}, 'Faith'), ' ', h('i', {}, 'in Motion'))),
-    h('div', { class: 'sheet' }, h('div', { class: 'sheet-inner' }, h('h1', { class: 'sr-only', text: 'Today' }), upd, quiet, card, partner, notes, motion, vowEl,
+    h('div', { class: 'sheet' }, h('div', { class: 'sheet-inner' }, h('h1', { class: 'sr-only', text: 'Today' }), upd, quiet, card, partner, notes, motion, vowEl, progEl,
       h('p', { style: 'margin-top:28px' }, link('/app/route', 'Open the Route', { class: 'textlink' }))))));
   warm(stop);
 }
@@ -633,7 +635,8 @@ async function openHardDay(stop) {
   ap(body, h('p', {}, h('button', { class: 'textlink', type: 'button', onclick: () => { closeSheet(true); openHelpNow(); } }, c.helpNow?.menuLabel || 'Need help now?')));
   openSheet(hd?.heading || T().hardDayDefaultHeading, body);
 }
-const verses = (list) => (list || []).map((v) => h('blockquote', { class: 'verse' }, h('p', { text: v.text }), h('cite', { text: `${v.ref} (ESV)` })));
+const verses = (list) => (list || []).flatMap((v) => [h('blockquote', { class: 'verse' }, h('p', { text: v.text }), h('cite', { text: `${v.ref} (ESV)` })),
+  h('p', { class: 'share-mini verse-share' }, link(`/app/share?card=verse&stop=${location.pathname.split('/')[3]}&ref=${encodeURIComponent(v.ref)}`, N.shareVerse, { class: 'textlink' }))]);
 const readCard = (sc) => h('div', { class: 'card' }, h('h3', { text: 'Read first' }), h('p', { class: 'bookref', text: `Read ${sc.bookRef.chapter}, ${sc.bookRef.section}, then come back.` }));
 const bookPointer = (sc) => h('p', { class: 'stop-meta', style: 'margin-top:24px' }, `In the book: ${sc.bookRef.chapter}, ${sc.bookRef.section}`);
 function nextStop(stop) { const i = c.stops.indexOf(stop); const n = c.stops[i + 1]; return n ? { id: n.id, screen: 'read' } : { id: stop.id, screen: 'review' }; }
@@ -1175,35 +1178,43 @@ async function viewShare() {
   const stop = C.stopById(c, q.get('stop')) || fallback || nextScreen().stop;
   const cards = Array.isArray(c.share) ? c.share : c.share.cards;
   const vow = C.verseOfWeek(c) || { text: stop.screens.pulse.verses[0]?.text, ref: stop.screens.pulse.verses[0]?.ref, stop };
+  const U = c.share.ui || {};
+  // A verse named in the link (Share this verse under a verse in a stop), else the verse of the week; Another verse steps through the weeks.
+  const vs = C.stopById(c, q.get('stop')); let refV = null;
+  if (vs && q.get('ref')) for (const sc of Object.values(vs.screens)) { const v = (sc.verses || []).find((x) => x.ref === q.get('ref')); if (v) { refV = { text: v.text, ref: v.ref, stop: vs }; break; } }
+  let verseIdx = 0;
+  const verse = () => (!verseIdx && refV) || C.verseOfWeek(c, new Date(Date.now() + verseIdx * 6048e5)) || vow;
   const tags = { step: 'card-step', verse: 'card-verse', quote: 'card-quote', stop: 'card-stop', walk: 'invite-walk', line: 'card-quote', route: 'card-route', onward: 'card-onward' };
   const publicLine = h('input', { id: 'pub', type: 'text', maxlength: '80', autocomplete: 'off' });
-  const canvasBox = h('div'); const meta = h('p', { class: 'help', 'aria-live': 'polite' }); const draftNote = h('div');
+  const canvasBox = h('div'); const draftNote = h('div'); const capBox = h('p', { class: 'caption-box' }); const howEl = h('p', { class: 'help share-how' });
   const pubWrap = h('div', { class: 'field' }, h('label', { for: 'pub' }, 'A public line ', h('span', {}, '(optional, 80 characters)')), publicLine, h('p', { class: 'help', text: 'Only what you type here goes on the card. Your journal never does.' }));
-  const anotherQuote = h('p', {}, h('button', { class: 'textlink', type: 'button', onclick: () => { quoteIdx++; draw(); } }, 'Another quote'));
+  const another = h('button', { class: 'textlink', type: 'button', onclick: () => { if (kind === 'verse') verseIdx++; else quoteIdx++; draw(); } });
+  const anotherQuote = h('p', {}, another);
   // PRIVACY: card text comes only from content files, the stop title, and the optional public line typed above.
   const cardData = () => {
     // "my Chapter 3 step", "my Conclusion step" (never "my the Conclusion step"); titles ending in punctuation get no extra period.
     if (kind === 'step') return { kind, headline: `I took my ${C.chapterLabel(stop)} step: ${C.sentence(stop.title)}`, sub: publicLine.value.trim() || null, plate: c.img.items['share-road'] };
     if (kind === 'stop') return { kind, headline: `I finished Stop ${stop.order}: ${C.sentence(stop.title)}`, plate: c.img.items['share-road'] };
-    if (kind === 'verse') return { kind, headline: vow.text, sub: `${vow.ref} (ESV). From ${vow.stop ? C.chapterFrom(vow.stop) : 'a chapter'} of Faith in Motion`, plate: c.img.items['share-water'] };
+    if (kind === 'verse') { const v = verse(); return { kind, headline: v.text, sub: `${v.ref} (ESV). From ${v.stop ? C.chapterFrom(v.stop) : 'a chapter'} of Faith in Motion`, plate: c.img.items['share-water'] }; }
     if (kind === 'line') return { kind, headline: lineStop.screens[lineScreen].quote, sub: `From ${C.chapterFrom(lineStop)} of Faith in Motion`, plate: c.img.items['share-water'] };
     if (kind === 'route') return { kind, headline: N.routeHeadline, plate: c.img.items['share-road'] };
     if (kind === 'onward') return { kind, headline: N.onwardHeadline, plate: c.img.items['share-walk'] };
     if (kind === 'quote') { const cd = cards[quoteIdx % cards.length]; return { kind, headline: cd.quote, sub: cd.attribution.replace(/\s*faithinmotionbook\.com\/app\s*$/, ''), plate: c.img.items['share-water'] }; }
     return { kind, headline: (c.wwm?.cardLines || ["I'm taking one step a week with Faith in Motion.", 'Walk with me?']).join(' '), plate: c.img.items['share-walk'] };
   };
-  let current;
+  let current, drawN = 0, imgUrl;
   async function draw() {
     draftNote.replaceChildren(['line', 'route', 'onward'].includes(kind) ? draftNew('New card') || '' : kind !== 'walk' ? '' : draftPill('Walk with me invite') || (!c.config.inviteCopyApproved && C.isPreviewHost() ? h('span', { class: 'draft-note', text: T().draftCopy }) : ''));
-    pubWrap.hidden = kind !== 'step'; anotherQuote.hidden = kind !== 'quote'; walkExtras.hidden = kind !== 'walk';
-    const data = { ...cardData(), coverSrc: '/app/img/cover-480.webp' };
-    current = await share.render(data, size);
-    Object.assign(current.canvas, { className: 'preview-canvas' });
-    current.canvas.setAttribute('role', 'img'); current.canvas.setAttribute('aria-label', `Share card: ${data.headline}`);
-    canvasBox.replaceChildren(current.canvas);
-    meta.textContent = `${share.SIZES[size].join(' by ')} pixels. Text contrast ${current.contrast.toFixed(1)} to 1.`;
-    setSocial();
-    window.__lastCard = { kind, size, w: current.canvas.width, h: current.canvas.height, contrast: current.contrast, headline: data.headline, sub: data.sub || '', link: `${c.config.appUrl}?src=${tags[kind]}` };
+    pubWrap.hidden = kind !== 'step'; anotherQuote.hidden = kind !== 'quote' && kind !== 'verse'; walkExtras.hidden = kind !== 'walk';
+    another.textContent = kind === 'verse' ? U.anotherVerse || 'Another verse' : 'Another quote';
+    afterShare.replaceChildren(); capBox.textContent = caption(); setSocial();
+    const data = { ...cardData(), coverSrc: '/app/img/cover-480.webp' }; const n = ++drawN;
+    const r = await share.render(data, size); const file = await share.toFile(r.canvas, `faith-in-motion-${kind}-${size}.jpg`);
+    if (n !== drawN) return; // a newer choice is drawing
+    current = { ...r, file }; howEl.textContent = navigator.canShare?.({ files: [file] }) ? U.how : U.howSave; if (imgUrl) URL.revokeObjectURL(imgUrl); imgUrl = URL.createObjectURL(file);
+    // An image (not a canvas) so a long press can save it, even in apps' built-in browsers.
+    canvasBox.replaceChildren(h('img', { class: 'preview-canvas', src: imgUrl, alt: `Share card: ${data.headline}`, width: r.canvas.width, height: r.canvas.height }));
+    window.__lastCard = { kind, size, w: r.canvas.width, h: r.canvas.height, contrast: r.contrast, headline: data.headline, sub: data.sub || '', link: `${c.config.appUrl}?src=${tags[kind]}` };
   }
   const chipRow = (opts, getv, setv, label) => { const row = h('div', { class: 'chips', role: 'group', 'aria-label': label });
     opts.forEach(([k, l]) => row.append(h('button', { type: 'button', class: 'chip', 'data-k': k, 'aria-pressed': String(getv() === k), onclick: (e) => { setv(k); row.querySelectorAll('.chip').forEach((b) => b.setAttribute('aria-pressed', 'false')); e.currentTarget.setAttribute('aria-pressed', 'true'); draw(); } }, l))); return row; };
@@ -1219,14 +1230,19 @@ async function viewShare() {
   // prefilled text), and X / Facebook buttons open their share pages. PRIVACY: the caption is built only from the card's
   // public content (never the optional public line or any journal field).
   const cardUrl = () => `${c.config.appUrl}?src=${tags[kind]}`;
-  const caption = () => {
+  // The first line says what the card says; then the book, the book link, the app link and one tag.
+  const capLine = () => {
     const d = cardData();
     if (kind === 'walk') return c.wwm?.shareText || 'Walk with me?';
-    if (kind === 'verse') return `\u201c${vow.text}\u201d ${vow.ref} (ESV). From ${N.byline}`;
-    if (kind === 'quote' || kind === 'line') return `\u201c${d.headline}\u201d Herman Davis, Faith in Motion.`;
-    return `${d.headline} ${N.byline}`;
+    if (kind === 'verse') return `\u201c${d.headline}\u201d ${verse().ref} (ESV)`;
+    if (kind === 'quote' || kind === 'line') return `\u201c${d.headline}\u201d`;
+    return d.headline;
   };
-  const xHref = () => `https://x.com/intent/post?text=${encodeURIComponent(caption())}&url=${encodeURIComponent(cardUrl())}`;
+  const tag = U.tags || '#FaithInMotion';
+  const caption = () => [capLine(), '', U.byline || 'Faith in Motion by Herman Davis', `${U.getBook || 'Get the book:'} ${c.config.paperbackUrl}`, `${U.freeApp || 'Free companion app:'} ${cardUrl()}`, tag].join('\n');
+  const copyCap = () => { try { return navigator.clipboard.writeText(caption()).then(() => true, () => false); } catch { return Promise.resolve(false); } };
+  const copyBtn = () => h('button', { class: 'btn btn-secondary copy-caption', type: 'button', onclick: async (e) => { const b = e.currentTarget; b.textContent = (await copyCap()) ? U.captionCopied || 'Caption copied.' : U.step1Fail || 'Copy not available here'; } }, U.copyCaption || 'Copy caption');
+  const xHref = () => `https://x.com/intent/post?text=${encodeURIComponent(`${capLine()} ${tag}`)}&url=${encodeURIComponent(cardUrl())}`;
   const fbHref = () => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(cardUrl())}`;
   const xBtn = h('a', { class: 'btn btn-secondary social-btn post-x', target: '_blank', rel: 'noopener noreferrer', href: '#' }, icon('xlogo'), h('span', { text: N.postX }));
   const fbBtn = h('a', { class: 'btn btn-secondary social-btn share-fb', target: '_blank', rel: 'noopener noreferrer', href: '#' }, icon('fblogo'), h('span', { text: N.shareFb }));
@@ -1236,20 +1252,22 @@ async function viewShare() {
     h('h1', { class: 'h1', text: 'Share a card' }),
     h('p', { class: 'legend', text: 'Card' }), chipRow(kinds, () => kind, (v) => { kind = v; }, 'Card'),
     h('p', { class: 'legend', text: 'Size' }), chipRow(Object.entries(share.SIZE_LABELS), () => size, (v) => { size = v; }, 'Size'),
-    pubWrap, draftNote, anotherQuote, canvasBox, meta, walkExtras, linkStatus,
-    h('div', { class: 'btn-row' }, h('button', { class: 'btn btn-primary', type: 'button', onclick: async () => {
-      const url = cardUrl();
-      const text = kind === 'walk' ? (c.wwm?.shareText || 'Walk with me?') : 'Faith in Motion by Herman Davis.';
-      // Copy first, inside the same tap, before the share sheet opens. Fails silently if the clipboard is denied.
-      try { navigator.clipboard?.writeText(`${caption()} ${url}`).then(() => toast(N.captionCopied), () => {}); } catch {}
-      const r = await share.shareCanvas(current.canvas, `faith-in-motion-${kind}-${size}.png`, text, url);
-      if (r === 'downloaded') { // desktop: the image is saved, so offer the link to paste next to it
-        const u = kind === 'walk' ? INVITE : url;
-        afterShare.replaceChildren(h('div', { class: 'card after-download' }, h('p', {}, N.savedDownload, ' ', draftNew('Copy link fallback')),
-          h('div', { class: 'btn-row' }, h('button', { class: 'btn btn-secondary copy-link', type: 'button', onclick: () => copyLink(u) }, N.copyLink), link('/app/sendoff?share=1', N.continue, { class: 'btn btn-primary' }))));
-        afterShare.querySelector('button')?.focus();
-      } else if (r !== 'cancelled') go('/app/sendoff?share=1');
-    } }, 'Share or download')), socialRow, afterShare))));
+    pubWrap, draftNote, anotherQuote, canvasBox, walkExtras, linkStatus,
+    h('p', { class: 'legend', text: U.captionLabel || 'Your caption' }), capBox,
+    howEl,
+    h('div', { class: 'btn-row' }, h('button', { class: 'btn btn-primary share-go', type: 'button', onclick: async () => {
+      if (!current?.file) return;
+      // One tap: copy the caption first (inside the tap), then the share sheet with picture + caption, or save the picture.
+      const copied = copyCap(); const cap = caption();
+      const r = await share.shareFile(current.file, cap);
+      if (r === 'downloaded') {
+        const ok = await copied;
+        afterShare.replaceChildren(h('div', { class: 'card after-download', role: 'status' }, h('p', { style: 'font-weight:600', text: U.readyTitle || 'Ready to post' }),
+          h('ol', { class: 'how-list' }, h('li', { text: ok ? U.step1 : U.step1Fail }), h('li', { text: U.step2 }), h('li', { text: U.step3 })), h('p', { class: 'help', text: U.holdTip }),
+          h('div', { class: 'btn-row' }, copyBtn(), link('/app/sendoff?share=1', N.continue, { class: 'btn btn-primary' }))));
+        afterShare.scrollIntoView({ block: 'nearest', behavior: reducedMotion() ? 'auto' : 'smooth' });
+      } else if (r !== 'cancelled') { if (await copied) toast(N.captionCopied); go('/app/sendoff?share=1'); }
+    } }, icon('share'), h('span', { text: U.share || 'Share' }))), afterShare, h('p', {}, copyBtn()), socialRow, h('p', { class: 'help', text: U.linkOnly })))));
   await draw();
 }
 

@@ -323,5 +323,10 @@ input:focus-visible, textarea:focus-visible { outline: 2px solid var(--amber); o
 
 /* Post on X / Share on Facebook (approved by Herman 2026-10-17 8:44 PM CT) */
 .social-row { margin-top: 10px; }
+.caption-box { white-space: pre-line; overflow-wrap: anywhere; font-size: 15px; background: rgba(255,255,255,.55); border: 1px solid var(--hair); border-radius: var(--r-ctl); padding: 12px 14px; margin: 6px 0 0; user-select: text; -webkit-user-select: text; }
+.share-how { margin-top: 14px; }
+.how-list { margin: 8px 0; padding-left: 22px; font-size: 17px; }
+.how-list li { margin: 4px 0; }
+.verse-share { margin: -4px 0 14px; }
 .social-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
-.social-btn svg { width: 20px; height: 20px; flex: none; }
+.social-btn svg, .share-go svg { width: 20px; height: 20px; flex: none; }
