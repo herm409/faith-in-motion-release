@@ -57,13 +57,14 @@ try {
   //   Once a branch contains it, thanks.html is pinned to 4c847b0 instead of 405f631.
   // 618834c = app-discovery for production (hero buttons fit the first phone screen, plain 44px close X), approved Oct 18 8:00 AM CT.
   // 44d55ba = app-section (promo links to #steps-app, browser/home-screen copy), preview Oct 18 8:11 AM CT, approved for production Oct 18 8:12 AM CT.
+  // f0bb6d5 = fix4 (TOC chapter labels, wordmark spacing, sticky 'Get the book' bar, app v1.0 branding), requested by Herman Oct 18 ~9:05 AM CT.
   let APPROVED = 'a38a74c';
   let hasApproved = false;
-  for (const pin of ['44d55ba', '618834c', '4c847b0', '5102cab', '03f75b9', '9da0fc0', '465da53', 'a38a74c']) { try { execSync(`git merge-base --is-ancestor ${pin} HEAD`, { cwd }); APPROVED = pin; hasApproved = true; break; } catch {} }
+  for (const pin of ['f0bb6d5', '44d55ba', '618834c', '4c847b0', '5102cab', '03f75b9', '9da0fc0', '465da53', 'a38a74c']) { try { execSync(`git merge-base --is-ancestor ${pin} HEAD`, { cwd }); APPROVED = pin; hasApproved = true; break; } catch {} }
   if (hasApproved || branch === 'landing-motion') {
     const base = hasApproved ? APPROVED : 'steps-prod-golive';
     const drift = execSync(`git diff --name-only ${base} -- index.html styles.css script.js thanks.html bar-early.js`, { cwd }).toString().trim();
-    const thanksBase = ['44d55ba', '618834c', '4c847b0'].includes(APPROVED) ? APPROVED : '405f631';
+    const thanksBase = ['f0bb6d5', '44d55ba', '618834c', '4c847b0'].includes(APPROVED) ? APPROVED : '405f631';
     const forms = [execSync('git diff --name-only 405f631 -- forms.html', { cwd }).toString().trim(), execSync(`git diff --name-only ${thanksBase} -- thanks.html`, { cwd }).toString().trim()].filter(Boolean).join('\n');
     const bad = [...new Set([...(hasApproved ? drift.split('\n') : []), ...forms.split('\n')].filter(Boolean))];
     if (bad.length) { fail++; console.log(`FAIL landing files differ from approved ${base} (or forms/thanks changed):`, bad.join(', ')); }
