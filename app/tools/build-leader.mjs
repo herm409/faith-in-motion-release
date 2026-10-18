@@ -7,6 +7,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const APP = join(dirname(fileURLToPath(import.meta.url)), '..'); const ROOT = join(APP, '..');
 const C = join(APP, 'content');
+const { GW_GUIDE } = await import('../js/fresh.js'); // same Group walks guide text the app shows
 const cfg = JSON.parse(readFileSync(join(APP, 'config.json'), 'utf8'));
 const manifest = JSON.parse(readFileSync(join(C, 'manifest.json'), 'utf8'));
 const stops = manifest.stops.map((s) => JSON.parse(readFileSync(join(C, s.file), 'utf8'))).sort((a, b) => a.order - b.order);
@@ -88,6 +89,8 @@ ol, ul { padding-left: 22px; } li { margin: 6px 0; }
 <p class="lede">${esc(L.lede)}</p>
 <div class="card"><p class="label">${L.how}${DRAFT}</p><ol>${li(L.howItems)}</ol>
 <p>${esc(L.app)}</p><p><a class="btn" href="/app/?src=groups">${L.appLink}</a></p></div>
+${cfg.groupWalks ? `<div class="card" id="group-walks"><h2>${esc(GW_GUIDE.title)}</h2>${GW_GUIDE.sections.map((s) => `<p class="label">${esc(s.h)}</p>${s.p.map((x) => `<p>${esc(x)}</p>`).join('')}${s.verse ? `<blockquote><p>${esc(s.verse.text)}</p><cite>${esc(s.verse.ref)} (ESV)</cite></blockquote>` : ''}`).join('')}
+<p><a class="btn" href="/app/groups">${esc(GW_GUIDE.appLink)}</a></p></div>` : ''}
 <p class="label">${L.toc}</p>
 <ol class="toc" start="0">${stops.map((s) => `<li><a href="#stop-${s.order}">${esc(s.title)}</a></li>`).join('')}</ol>
 ${stops.map(sec).join('\n')}

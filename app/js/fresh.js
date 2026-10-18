@@ -98,3 +98,43 @@ export const N = {
   gwTooMany: "You can lead up to 5 groups.",
   gwError: "Something went wrong. Please try again.",
 };
+// Group walks guide (approved by Herman 7:47 PM CT). Shared by the app (/app/groups) and the leader guide (/groups/).
+export const GW_GUIDE = {
+ "title": "How Group walks work",
+ "sections": [
+  {
+   "h": "Why walk together",
+   "p": [
+    "Every chapter of the book ends the same way: bring one answer to a trusted believer this week. Fear thrives in private, and steps come easier when someone you trust is walking too.",
+    "A group walk gives a few people a simple way to keep each other moving, one stop at a time."
+   ],
+   "verse": {
+    "ref": "Proverbs 15:22",
+    "text": "Without counsel plans fail, but with many advisers they succeed.",
+    "stopId": "s7"
+   }
+  },
+  {
+   "h": "Start a group and invite",
+   "p": [
+    "One person starts the group and becomes its leader. The leader shares an invite link or a six character code, usually by text. Up to 12 people can join.",
+    "Everyone signs in with their email, so the group can see their progress on any phone."
+   ]
+  },
+  {
+   "h": "What your group sees",
+   "p": [
+    "Only three things: the first name you choose, which stop you are on, and a check when you take your step.",
+    "Never your answers, never the words of your step, and never your email. There is no chat and no comments. Talk in person, and let the leader guide carry the questions."
+   ]
+  },
+  {
+   "h": "Leave anytime",
+   "p": [
+    "You can leave a group with one tap, and your progress disappears from it right away. The leader can make a new code, remove someone, or close the group for everyone."
+   ]
+  }
+ ],
+ "appLink": "Open Group walks in the app",
+ "leaderLink": "Questions for every stop: the small group leader guide"
+};

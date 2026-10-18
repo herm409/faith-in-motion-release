@@ -9,7 +9,7 @@ import * as ics from './ics.js';
 import * as share from './share.js';
 import * as account from './account.js';
 import * as F from './five.js';
-import { N } from './fresh.js';
+import { N, GW_GUIDE } from './fresh.js';
 
 const { SCREENS, SCREEN_NAMES } = C;
 let c; // content
@@ -916,13 +916,21 @@ async function pushGroupStatus(force) {
   if (!force && last.key === key && Date.now() - (last.at || 0) < 12 * 3600 * 1000) return; // unchanged and shared in the last 12 hours
   try { await account.groups('POST', { action: 'status', ...s }); localStorage.setItem('fim-groups-last', JSON.stringify({ key, at: Date.now() })); } catch { /* try again next time */ }
 }
+function gwGuide(open) {
+  const G = GW_GUIDE;
+  return h('details', { class: 'card gw-guide', open: open || null },
+    h('summary', { text: G.title }),
+    ...G.sections.map((s) => h('section', { class: 'gw-guide-sec' }, h('h3', { text: s.h }), ...s.p.map((x) => h('p', { text: x })),
+      s.verse ? h('blockquote', { class: 'esv-verse' }, h('p', { text: s.verse.text }), h('cite', { text: `${s.verse.ref} (ESV)` })) : null)),
+    h('p', {}, ext('/groups/#group-walks', G.leaderLink, { class: 'textlink' })));
+}
 async function viewGroups(inviteCode) {
   document.title = `${N.gwTitle} | Steps`;
   if (inviteCode) sessionStorage.setItem('fim-pending-join', String(inviteCode).toUpperCase().slice(0, 6));
   let pending = sessionStorage.getItem('fim-pending-join') || '';
   const body = h('div', { class: 'sheet-inner gw' });
   mount(h('main', { class: 'page groups' }, topbar({ back: '/app/' }), h('div', { class: 'sheet' }, body)));
-  const headFn = () => [h('h1', { class: 'h1' }, N.gwTitle, ' ', draftNew('Group walks')), pending ? h('p', { class: 'gw-invited', text: N.gwInvited }) : null, h('p', { class: 'prose', text: N.gwIntro })].filter(Boolean);
+  const headFn = () => [h('h1', { class: 'h1' }, N.gwTitle, ' ', draftNew('Group walks')), pending ? h('p', { class: 'gw-invited', text: N.gwInvited }) : null, h('p', { class: 'prose', text: N.gwIntro }), gwGuide(!account.signedIn())].filter(Boolean);
   const head = headFn();
   if (!account.signedIn() || account.state()?.needsSignIn) {
     body.replaceChildren(...head, h('p', { text: N.gwSignIn }), h('p', {}, link('/app/account', N.gwSignInBtn, { class: 'btn btn-primary' })), h('p', { class: 'help', text: N.gwAdults }));

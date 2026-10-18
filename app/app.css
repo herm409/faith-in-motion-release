@@ -309,3 +309,7 @@ input:focus-visible, textarea:focus-visible { outline: 2px solid var(--amber); o
 .gw-status { color: #9b2c2c; font-weight: 600; }
 .gw details { margin: 10px 0; } .gw summary { cursor: pointer; font-weight: 600; }
 .gw-invited { font-weight: 600; }
+.gw-guide summary { cursor: pointer; font-weight: 700; font-size: 18px; }
+.gw-guide h3 { margin: 16px 0 4px; font-size: 17px; }
+.gw-guide blockquote { margin: 10px 0; padding-left: 12px; border-left: 3px solid var(--amber, #e8a04a); }
+.gw-guide cite { display: block; font-size: 14px; font-style: normal; opacity: .8; }
