@@ -313,3 +313,10 @@ input:focus-visible, textarea:focus-visible { outline: 2px solid var(--amber); o
 .gw-guide h3 { margin: 16px 0 4px; font-size: 17px; }
 .gw-guide blockquote { margin: 10px 0; padding-left: 12px; border-left: 3px solid var(--amber, #e8a04a); }
 .gw-guide cite { display: block; font-size: 14px; font-style: normal; opacity: .8; }
+
+/* Top bar backdrop on scroll (approved by Herman 2026-10-17 7:59 PM CT). Pseudo-element only: no layout shift. */
+.topbar::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0; background: rgba(244, 236, 223, .82); -webkit-backdrop-filter: blur(12px) saturate(1.2); backdrop-filter: blur(12px) saturate(1.2); box-shadow: 0 1px 0 rgba(25, 41, 53, .08), 0 8px 18px -10px rgba(25, 41, 53, .28); transition: opacity 180ms ease; }
+.app-scrolled .topbar::before { opacity: 1; }
+.dark .topbar::before, .route .topbar::before, .full .topbar::before { background: rgba(25, 41, 53, .72); box-shadow: 0 1px 0 rgba(244, 236, 223, .08), 0 8px 18px -10px rgba(0, 0, 0, .5); }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .topbar::before { background: rgba(244, 236, 223, .96); } .dark .topbar::before, .route .topbar::before, .full .topbar::before { background: rgba(25, 41, 53, .94); } }
+@media (prefers-reduced-motion: reduce) { .topbar::before { transition: none; } }

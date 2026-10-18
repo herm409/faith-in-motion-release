@@ -68,7 +68,12 @@ function mount(...nodes) {
   const main = app.querySelector('main');
   if (main) { main.id = 'main'; main.setAttribute('tabindex', '-1'); }
   window.scrollTo(0, 0);
+  topbarScrolled();
 }
+// Floating top bar backdrop (approved by Herman 7:59 PM CT): a soft band fades in once the page scrolls,
+// so content never sits bare under the round buttons. One passive listener; no layout change (pseudo-element only).
+function topbarScrolled() { document.documentElement.classList.toggle('app-scrolled', (window.scrollY || document.documentElement.scrollTop || 0) > 4); }
+window.addEventListener('scroll', topbarScrolled, { passive: true });
 function topbar({ back } = {}) {
   return h('div', { class: 'topbar' },
     back ? h('a', { href: back, 'data-link': true, class: 'iconbtn', 'aria-label': 'Back' }, icon('back')) : h('span'),
