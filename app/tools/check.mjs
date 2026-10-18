@@ -55,17 +55,18 @@ try {
   // 5102cab = phone menu (menu button + sheet, styles/script cache v=20261017-menu), approved by Herman for production on 2026-10-17 7:51 PM CT.
   // 4c847b0 = app-discovery PREVIEW (announcement bar + bar-early.js, hero app button, /thanks app link). Not on production; approved for preview Oct 18 7:51 AM CT.
   //   Once a branch contains it, thanks.html is pinned to 4c847b0 instead of 405f631.
+  // 618834c = app-discovery for production (hero buttons fit the first phone screen, plain 44px close X), approved Oct 18 8:00 AM CT.
   let APPROVED = 'a38a74c';
   let hasApproved = false;
-  for (const pin of ['4c847b0', '5102cab', '03f75b9', '9da0fc0', '465da53', 'a38a74c']) { try { execSync(`git merge-base --is-ancestor ${pin} HEAD`, { cwd }); APPROVED = pin; hasApproved = true; break; } catch {} }
+  for (const pin of ['618834c', '4c847b0', '5102cab', '03f75b9', '9da0fc0', '465da53', 'a38a74c']) { try { execSync(`git merge-base --is-ancestor ${pin} HEAD`, { cwd }); APPROVED = pin; hasApproved = true; break; } catch {} }
   if (hasApproved || branch === 'landing-motion') {
     const base = hasApproved ? APPROVED : 'steps-prod-golive';
     const drift = execSync(`git diff --name-only ${base} -- index.html styles.css script.js thanks.html bar-early.js`, { cwd }).toString().trim();
-    const thanksBase = APPROVED === '4c847b0' ? '4c847b0' : '405f631';
+    const thanksBase = ['618834c', '4c847b0'].includes(APPROVED) ? APPROVED : '405f631';
     const forms = [execSync('git diff --name-only 405f631 -- forms.html', { cwd }).toString().trim(), execSync(`git diff --name-only ${thanksBase} -- thanks.html`, { cwd }).toString().trim()].filter(Boolean).join('\n');
     const bad = [...new Set([...(hasApproved ? drift.split('\n') : []), ...forms.split('\n')].filter(Boolean))];
     if (bad.length) { fail++; console.log(`FAIL landing files differ from approved ${base} (or forms/thanks changed):`, bad.join(', ')); }
-    else console.log(`OK   landing matches approved redesign (${hasApproved ? APPROVED : 'landing-motion in progress'}); forms.html + thanks.html unchanged since 405f631`);
+    else console.log(`OK   landing matches approved redesign (${hasApproved ? APPROVED : 'landing-motion in progress'}); forms.html unchanged since 405f631, thanks.html matches ${thanksBase}`);
   } else {
     const out = execSync('git diff --name-only main -- index.html styles.css script.js thanks.html', { cwd }).toString().trim();
     if (out) { fail++; console.log('FAIL landing files changed:', out); } else console.log('OK   landing files unchanged vs main');
