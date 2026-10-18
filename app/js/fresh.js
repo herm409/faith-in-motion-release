@@ -136,5 +136,6 @@ export const GW_GUIDE = {
   }
  ],
  "appLink": "Open Group walks in the app",
+ "navLink": "Group walks",
  "leaderLink": "Questions for every stop: the small group leader guide"
 };

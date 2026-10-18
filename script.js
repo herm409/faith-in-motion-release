@@ -530,4 +530,58 @@
     window.addEventListener("load", layoutRoute, { once: true });
   }
 
+
+  /* Phone menu (approved by Herman 2026-10-17 7:51 PM CT): accessible sheet, focus trap, Esc and backdrop close. */
+  (function () {
+    var btn = document.querySelector(".menu-btn");
+    var sheet = document.getElementById("site-menu");
+    var backdrop = document.querySelector(".menu-backdrop");
+    if (!btn || !sheet || !backdrop) return;
+    var root = document.documentElement;
+    var lastFocus = null;
+    var closeTimer = null;
+    function focusables() {
+      return Array.prototype.slice.call(sheet.querySelectorAll("a[href], button:not([disabled])"));
+    }
+    function open() {
+      clearTimeout(closeTimer);
+      lastFocus = document.activeElement;
+      backdrop.hidden = false;
+      sheet.hidden = false;
+      void sheet.offsetWidth;
+      root.classList.add("menu-open", "menu-locked");
+      btn.setAttribute("aria-expanded", "true");
+      btn.setAttribute("aria-label", "Close menu");
+      var f = focusables();
+      if (f.length) f[0].focus();
+      document.addEventListener("keydown", onKey, true);
+    }
+    function close(restore) {
+      if (sheet.hidden) return;
+      root.classList.remove("menu-open", "menu-locked");
+      btn.setAttribute("aria-expanded", "false");
+      btn.setAttribute("aria-label", "Open menu");
+      document.removeEventListener("keydown", onKey, true);
+      var done = function () { sheet.hidden = true; backdrop.hidden = true; };
+      if (reduceMotion) done(); else closeTimer = setTimeout(done, 260);
+      if (restore !== false && lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+    function onKey(e) {
+      if (e.key === "Escape") { e.preventDefault(); close(); return; }
+      if (e.key !== "Tab") return;
+      var f = focusables();
+      if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && (document.activeElement === first || !sheet.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && (document.activeElement === last || !sheet.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
+    }
+    btn.addEventListener("click", function () { if (sheet.hidden) open(); else close(); });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-menu-close]"), function (el) {
+      el.addEventListener("click", function () { close(); });
+    });
+    Array.prototype.forEach.call(sheet.querySelectorAll(".menu-rows a"), function (a) {
+      a.addEventListener("click", function () { close(false); });
+    });
+    window.addEventListener("resize", function () { if (window.innerWidth > 640) close(false); });
+  })();
 })();

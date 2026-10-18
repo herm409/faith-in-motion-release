@@ -16,7 +16,7 @@ const DRAFT = cfg.newWordingDraft && (!Array.isArray(cfg.draftOnly) || cfg.draft
 export const L = { // new wording (Draft, pending Herman)
   title: 'Small group leader guide', lede: 'Walk Faith in Motion together, one stop a week. Twelve stops, one for each part of the book.',
   how: 'How to use this guide', howItems: ['Before you meet, everyone reads the section named under "Read before you meet."', 'Open with the key verses and the book line.', 'Pick two or three questions. You do not need to use them all.', 'Close by having each person name one step for the week, then start the next meeting by asking how it went.', 'Private answers stay private. No one has to share what they wrote in the app.'],
-  read: 'Read before you meet', verses: 'Key verses', line: 'From the book', discuss: 'Discuss', step: "This week's step", next: 'Next time, ask', then: 'Then read', app: 'Each person can walk the same stop in the free Steps app.', appLink: 'Open the Steps app', toc: 'The twelve stops', back: 'Back to Faith in Motion',
+  read: 'Read before you meet', verses: 'Key verses', line: 'From the book', discuss: 'Discuss', step: "This week's step", next: 'Next time, ask', then: 'Then read', app: 'Each person can walk the same stop in the free Steps app.', appLink: 'Open the Steps app', toc: 'The twelve stops', back: 'Back to Faith in Motion', appShort: 'Open the app',
 };
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const li = (a) => a.filter(Boolean).map((x) => `<li>${esc(x)}</li>`).join('');
@@ -60,6 +60,7 @@ const html = `<!doctype html>
 :root { --navy: #122040; --cream: #F4ECDF; --umber: #463526; --amber: #E8A04A; }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--cream); color: var(--navy); font: 400 20px/1.55 "Cormorant Garamond", Georgia, serif; }
+.top { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 500 15px "Instrument Sans", system-ui, sans-serif; } .top a { display: inline-flex; align-items: center; min-height: 44px; }
 .wrap { max-width: 760px; margin: 0 auto; padding: 32px 22px 80px; }
 a { color: var(--navy); text-underline-offset: 3px; } a:focus-visible { outline: 2px solid var(--navy); outline-offset: 3px; }
 .top { font: 600 15px/1.4 "Instrument Sans", system-ui, sans-serif; }
@@ -84,7 +85,7 @@ ol, ul { padding-left: 22px; } li { margin: 6px 0; }
 </head>
 <body>
 <main class="wrap">
-<p class="top"><a href="/#groups">${L.back}</a></p>
+<nav class="top" aria-label="Site"><a href="/#groups">${L.back}</a><a href="/app/">${esc(L.appShort)}</a>${cfg.groupWalks ? `<a href="/app/groups">${esc(GW_GUIDE.navLink)}</a>` : ''}</nav>
 <h1>${L.title}${DRAFT}</h1>
 <p class="lede">${esc(L.lede)}</p>
 <div class="card"><p class="label">${L.how}${DRAFT}</p><ol>${li(L.howItems)}</ol>

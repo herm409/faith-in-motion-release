@@ -2230,3 +2230,26 @@ body.has-sticky-buy { padding-bottom: 4.5rem; }
   .hero-video { display: none; }
   .book3d-inner { transition: none; }
 }
+
+/* ——— Phone menu (approved by Herman 2026-10-17 7:51 PM CT). Phones only; desktop nav unchanged. ——— */
+.menu-btn { display: none; }
+@media (max-width: 640px) {
+  .menu-btn { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex: none; margin-right: -6px; padding: 0; border: 0; border-radius: 999px; background: transparent; color: var(--navy); cursor: pointer; }
+  .menu-btn:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+}
+.menu-backdrop { position: fixed; inset: 0; z-index: 1000; background: rgba(18, 32, 64, 0.42); opacity: 0; transition: opacity 0.22s ease; }
+.menu-sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1001; max-height: 88svh; overflow-y: auto; background: var(--cream, #F4ECDF); color: var(--navy); border-radius: 22px 22px 0 0; box-shadow: 0 -12px 32px rgba(25, 41, 53, 0.18); padding: 6px 22px calc(28px + env(safe-area-inset-bottom)); transform: translateY(100%); transition: transform 0.26s cubic-bezier(.2,.8,.2,1); }
+.menu-backdrop[hidden], .menu-sheet[hidden] { display: none; }
+.menu-open .menu-backdrop { opacity: 1; }
+.menu-open .menu-sheet { transform: none; }
+.menu-head { display: flex; align-items: center; justify-content: space-between; min-height: 60px; }
+.menu-title { margin: 0; font-family: "Playfair Display", Georgia, serif; font-weight: 700; font-size: 1.6rem; color: var(--navy); }
+.menu-close { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin-right: -8px; padding: 0; border: 0; border-radius: 999px; background: transparent; color: var(--navy); cursor: pointer; }
+.menu-close:focus-visible, .menu-rows a:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+.menu-rows { list-style: none; margin: 0; padding: 0; }
+.menu-rows a { display: flex; align-items: center; min-height: 52px; padding: 6px 2px; border-bottom: 1px solid color-mix(in srgb, var(--navy) 14%, transparent); font-family: var(--font-ui); font-size: 1.05rem; color: var(--navy); text-decoration: none; }
+.menu-rows li:last-child a { border-bottom: 0; }
+.menu-rows .menu-buy { justify-content: center; margin-top: 16px; min-height: 50px; border-radius: 999px; background: var(--navy); color: var(--soft, #FAF8F4); font-weight: 600; }
+html.menu-locked, html.menu-locked body { overflow: hidden; }
+@media (prefers-reduced-motion: reduce) { .menu-backdrop, .menu-sheet { transition: none; } }
+@media (min-width: 641px) { .menu-backdrop, .menu-sheet { display: none !important; } }
