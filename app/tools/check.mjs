@@ -34,10 +34,11 @@ const html = readFileSync(join(APP, 'index.html'), 'utf8');
   const stat = ['index.html', 'groups/index.html'].filter((f) => readFileSync(join(APP, '..', f), 'utf8').includes('pending Herman'));
   if (prodish && stat.length) { fail++; console.log(`FAIL static Draft, pending Herman pill in ${stat.join(', ')} on ${branch}`); }
   else if (!(prodish && cfg.newWordingDraft !== false)) console.log(prodish ? 'OK   newWordingDraft off (no Draft, pending Herman pills)' : `OK   newWordingDraft ${cfg.newWordingDraft ? 'on (preview only; check fails if this reaches steps-prod-golive)' : 'off'}`); }
-// group walks: preview only until the production tables exist and Herman approves shipping
+// group walks: approved for production by Herman 2026-10-17 7:46 PM CT (tables created on Neon main). Allowed on go-live;
+// the draft-pill checks above still fail on any newWordingDraft or draftOnly pill on the production branch.
 { const cfg = JSON.parse(readFileSync(join(APP, 'config.json'), 'utf8')); let branch = ''; try { branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: join(APP, '..') }).toString().trim(); } catch {}
-  if (branch === 'steps-prod-golive' && cfg.groupWalks) { fail++; console.log('FAIL groupWalks must be off on steps-prod-golive (production tables not created)'); }
-  else console.log(`OK   groupWalks ${cfg.groupWalks ? 'on (preview only)' : 'off'}`); }
+  if (branch === 'steps-prod-golive' && Array.isArray(cfg.draftOnly) && cfg.draftOnly.length) { fail++; console.log('FAIL draftOnly pills configured on steps-prod-golive'); }
+  else console.log(`OK   groupWalks ${cfg.groupWalks ? 'on' : 'off'}${branch === 'steps-prod-golive' ? ' (production: no draft pills)' : ''}`); }
 // small group leader guide (/groups/) must be rebuilt from content and dash-free
 try { execSync('node app/tools/build-leader.mjs --check', { cwd: join(APP, '..'), stdio: 'pipe' }); const g = readFileSync(join(APP, '..', 'groups', 'index.html'), 'utf8');
   if (bad.test(g)) { fail++; console.log('FAIL dashes in groups/index.html'); } else console.log('OK   groups/index.html rebuilt from content, no dashes'); }
