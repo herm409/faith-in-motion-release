@@ -1238,8 +1238,8 @@ async function viewShare() {
     if (kind === 'quote' || kind === 'line') return `\u201c${d.headline}\u201d`;
     return d.headline;
   };
-  const tag = U.tags || '#FaithInMotion';
-  const caption = () => [capLine(), '', U.byline || 'Faith in Motion by Herman Davis', `${U.getBook || 'Get the book:'} ${c.config.paperbackUrl}`, `${U.freeApp || 'Free companion app:'} ${cardUrl()}`, tag].join('\n');
+  const tag = U.tags || '#FaithInMotionBook #FaithInMotion';
+  const caption = () => [capLine(), '', U.byline || 'Faith in Motion by Herman Davis', U.getBook || 'Get the book and the free app: https://faithinmotionbook.com', tag].join('\n');
   const copyCap = () => { try { return navigator.clipboard.writeText(caption()).then(() => true, () => false); } catch { return Promise.resolve(false); } };
   const copyBtn = () => h('button', { class: 'btn btn-secondary copy-caption', type: 'button', onclick: async (e) => { const b = e.currentTarget; b.textContent = (await copyCap()) ? U.captionCopied || 'Caption copied.' : U.step1Fail || 'Copy not available here'; } }, U.copyCaption || 'Copy caption');
   const xHref = () => `https://x.com/intent/post?text=${encodeURIComponent(`${capLine()} ${tag}`)}&url=${encodeURIComponent(cardUrl())}`;
