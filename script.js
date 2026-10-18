@@ -61,20 +61,57 @@
 
   onScroll();
 
-  // Notify form → Netlify Forms (primary, awaited with ~6s timeout) +
-  // FormSubmit AJAX (background backup, never awaited). Visitor always lands
-  // on /thanks. Without JS, the form falls back to a native POST to FormSubmit
+  // Notify form → Netlify Forms (primary, awaited with ~6s timeout), then a
+  // FormSubmit AJAX backup email to Herman.
+  //  - Netlify OK (2xx): backup fires in the background (not awaited), go to /thanks.
+  //  - Netlify fails (non-2xx, network error or timeout): the backup is awaited and
+  //    flagged "NETLIFY FAILED, add manually" with the reason. If the backup
+  //    succeeds, go to /thanks; if it fails too, stay on the page, keep what they
+  //    typed and show an inline error.
+  //  - Honeypot filled: nothing is sent, go to /thanks (bots see success).
+  // Without JS, the form falls back to a native POST to FormSubmit
   // (which redirects to /thanks via _next).
   var SUBMIT_LABEL = submitBtn ? submitBtn.textContent : "Send me the devotionals";
   var FORMSUBMIT_AJAX = "https://formsubmit.co/ajax/herman@freedombychoice.com";
+  var BACKUP_SUBJECT = "Faith in Motion — notify me";
+  var FLAGGED_SUBJECT = "NETLIFY FAILED, add manually: Faith in Motion notify me";
   var NETLIFY_TIMEOUT_MS = 6000;
-  var HARD_REDIRECT_MS = 8000;
+  var BACKUP_TIMEOUT_MS = 8000;
+  var HELP_EMAIL = "herman@freedombychoice.com";
 
   function resetSubmitBtn() {
     if (submitBtn) {
       submitBtn.disabled = false;
       submitBtn.textContent = SUBMIT_LABEL;
     }
+  }
+
+  function showSendError() {
+    if (!errorEl) return;
+    errorEl.textContent = "";
+    errorEl.appendChild(document.createTextNode("Something went wrong. Please try again, or email "));
+    var a = document.createElement("a");
+    a.href = "mailto:" + HELP_EMAIL;
+    a.textContent = HELP_EMAIL;
+    errorEl.appendChild(a);
+    errorEl.appendChild(document.createTextNode("."));
+    errorEl.hidden = false;
+  }
+
+  // fetch with a timeout; resolves to a Response or rejects (network error, abort, timeout)
+  function fetchWithTimeout(url, opts, ms) {
+    return new Promise(function (resolve, reject) {
+      var controller = window.AbortController ? new AbortController() : null;
+      if (controller) opts.signal = controller.signal;
+      var timer = window.setTimeout(function () {
+        if (controller) controller.abort();
+        reject(new Error("timed out after " + Math.round(ms / 1000) + "s"));
+      }, ms);
+      fetch(url, opts).then(
+        function (res) { window.clearTimeout(timer); resolve(res); },
+        function (err) { window.clearTimeout(timer); reject(err); }
+      );
+    });
   }
 
   // If the visitor comes back via the back button (bfcache), never show a stuck button
@@ -121,36 +158,50 @@
       var emailVal = email.value.trim();
       var honeyVal = honeyEl ? honeyEl.value : "";
 
+      function goThanks() {
+        window.location.href = "/thanks";
+      }
+
+      // Honeypot filled: a bot. Send nothing and show the normal thank-you.
+      if (honeyVal) {
+        goThanks();
+        return;
+      }
+
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.textContent = "Sending…";
       }
 
-      var done = false;
-      function goThanks() {
-        if (done) return;
-        done = true;
-        submitting = false;
-        window.location.href = "/thanks";
-      }
-      // Absolute safety net: the button can never hang
-      window.setTimeout(goThanks, HARD_REDIRECT_MS);
-
-      // Background backup: FormSubmit AJAX (not awaited; keepalive survives navigation)
-      try {
+      function sendBackup(netlifyProblem) {
         var fsData = new FormData();
-        fsData.append("_subject", "Faith in Motion — notify me");
+        fsData.append("_subject", netlifyProblem ? FLAGGED_SUBJECT : BACKUP_SUBJECT);
+        if (netlifyProblem) fsData.append("netlify_status", "FAILED (" + netlifyProblem + "). Add this person to the list manually.");
         fsData.append("name", nameVal);
         fsData.append("email", emailVal);
         fsData.append("_captcha", "false");
         fsData.append("_honey", honeyVal);
-        fetch(FORMSUBMIT_AJAX, {
+        var opts = {
           method: "POST",
           body: fsData,
           headers: { Accept: "application/json" },
           keepalive: true,
-        }).catch(function () {});
-      } catch (err) {}
+        };
+        if (!netlifyProblem) {
+          // Netlify has it: background copy only, never awaited
+          try { fetch(FORMSUBMIT_AJAX, opts).catch(function () {}); } catch (err) {}
+          return Promise.resolve(true);
+        }
+        return fetchWithTimeout(FORMSUBMIT_AJAX, opts, BACKUP_TIMEOUT_MS)
+          .then(function (res) {
+            if (!res.ok) return false;
+            return res.json().then(
+              function (j) { return !(j && (j.success === false || j.success === "false")); },
+              function () { return true; }
+            );
+          })
+          .catch(function () { return false; });
+      }
 
       // Primary: Netlify Forms
       var body = new URLSearchParams();
@@ -159,24 +210,26 @@
       body.append("email", emailVal);
       body.append("_honey", honeyVal);
 
-      var controller = window.AbortController ? new AbortController() : null;
-      var abortTimer = window.setTimeout(function () {
-        if (controller) controller.abort();
-        goThanks();
-      }, NETLIFY_TIMEOUT_MS);
-
-      var opts = {
+      fetchWithTimeout("/", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: body.toString(),
-      };
-      if (controller) opts.signal = controller.signal;
-
-      fetch("/", opts)
-        .then(function () {}, function () {})
-        .then(function () {
-          window.clearTimeout(abortTimer);
-          goThanks();
+      }, NETLIFY_TIMEOUT_MS)
+        .then(
+          function (res) { return res.ok ? "" : "HTTP " + res.status; },
+          function (err) { return (err && err.message) || "network error"; }
+        )
+        .then(function (netlifyProblem) {
+          return sendBackup(netlifyProblem).then(function (backupOk) {
+            if (!netlifyProblem || backupOk) {
+              goThanks();
+              return;
+            }
+            // Both failed: stay here, keep their answers, let them try again
+            submitting = false;
+            resetSubmitBtn();
+            showSendError();
+          });
         });
     });
   }
