@@ -52,9 +52,10 @@ try {
   // 03f75b9 = steps-next leader guide link, approved by Herman for production on 2026-10-17 6:51 PM CT (pill removed).
   // 9da0fc0 = steps-next preview: one added link to /groups/ in the Groups section (pending Herman; not on production).
   // 465da53 = social card (og/twitter) update to the landing, approved by Herman on 2026-10-17. Newest pin the branch contains wins.
+  // 5102cab = phone menu (menu button + sheet, styles/script cache v=20261017-menu), approved by Herman for production on 2026-10-17 7:51 PM CT.
   let APPROVED = 'a38a74c';
   let hasApproved = false;
-  for (const pin of ['03f75b9', '9da0fc0', '465da53', 'a38a74c']) { try { execSync(`git merge-base --is-ancestor ${pin} HEAD`, { cwd }); APPROVED = pin; hasApproved = true; break; } catch {} }
+  for (const pin of ['5102cab', '03f75b9', '9da0fc0', '465da53', 'a38a74c']) { try { execSync(`git merge-base --is-ancestor ${pin} HEAD`, { cwd }); APPROVED = pin; hasApproved = true; break; } catch {} }
   if (hasApproved || branch === 'landing-motion') {
     const base = hasApproved ? APPROVED : 'steps-prod-golive';
     const drift = execSync(`git diff --name-only ${base} -- index.html styles.css script.js thanks.html`, { cwd }).toString().trim();
