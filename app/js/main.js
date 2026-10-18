@@ -912,8 +912,9 @@ async function groupStatus() {
 async function pushGroupStatus(force) {
   if (!c.config?.groupWalks || !account.signedIn() || (!force && !localStorage.getItem('fim-groups-joined'))) return;
   const s = await groupStatus(); const key = JSON.stringify(s);
-  if (!force && localStorage.getItem('fim-groups-last') === key) return;
-  try { await account.groups('POST', { action: 'status', ...s }); localStorage.setItem('fim-groups-last', key); } catch { /* try again next time */ }
+  let last = {}; try { last = JSON.parse(localStorage.getItem('fim-groups-last') || '{}'); } catch {}
+  if (!force && last.key === key && Date.now() - (last.at || 0) < 12 * 3600 * 1000) return; // unchanged and shared in the last 12 hours
+  try { await account.groups('POST', { action: 'status', ...s }); localStorage.setItem('fim-groups-last', JSON.stringify({ key, at: Date.now() })); } catch { /* try again next time */ }
 }
 async function viewGroups(inviteCode) {
   document.title = `${N.gwTitle} | Steps`;
@@ -921,7 +922,7 @@ async function viewGroups(inviteCode) {
   const pending = sessionStorage.getItem('fim-pending-join') || '';
   const body = h('div', { class: 'sheet-inner gw' });
   mount(h('main', { class: 'page groups' }, topbar({ back: '/app/' }), h('div', { class: 'sheet' }, body)));
-  const head = [h('h1', { class: 'h1' }, N.gwTitle, ' ', draftNew('Group walks')), pending ? h('p', { class: 'gw-invited', text: N.gwInvited }) : null, h('p', { class: 'prose', text: N.gwIntro })];
+  const head = [h('h1', { class: 'h1' }, N.gwTitle, ' ', draftNew('Group walks')), pending ? h('p', { class: 'gw-invited', text: N.gwInvited }) : null, h('p', { class: 'prose', text: N.gwIntro })].filter(Boolean);
   if (!account.signedIn() || account.state()?.needsSignIn) {
     body.replaceChildren(...head, h('p', { text: N.gwSignIn }), h('p', {}, link('/app/account', N.gwSignInBtn, { class: 'btn btn-primary' })), h('p', { class: 'help', text: N.gwAdults }));
     return;
