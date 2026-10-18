@@ -2280,3 +2280,10 @@ html.menu-locked, html.menu-locked body { overflow: hidden; }
   .hero-film .hero-cta .btn { margin: 0; align-self: stretch; }
   .hero-film .hero-cta .btn-secondary { padding-inline: 0.5rem; font-size: 0.9rem; line-height: 1.2; white-space: normal; text-align: center; min-height: 3rem; }
 }
+
+/* App section links (preview 2026-10-18): land below the sticky header (the bar scrolls away above it). */
+#steps-app { scroll-margin-top: calc(4rem + 0.75rem); }
+#steps-app-title:focus { outline: none; }
+#steps-app-title:focus-visible { outline: 2px solid var(--amber); outline-offset: 4px; }
+.steps-app-howto { margin-top: 0.4rem; }
+.steps-app-howto span { display: block; }

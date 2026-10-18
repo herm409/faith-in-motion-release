@@ -597,4 +597,27 @@
       if (mark && mark.focus) mark.focus();
     });
   })();
+
+  /* Promo links to the app section (preview 2026-10-18): on this page, keep ?src= in the URL and scroll smoothly
+     (instant with reduced motion). The phone menu's own click handler closes the menu first. */
+  (function () {
+    var target = document.getElementById("steps-app");
+    if (!target) return;
+    var here = location.pathname.replace(/index\.html$/, "");
+    Array.prototype.forEach.call(document.querySelectorAll('a[href*="#steps-app"]'), function (a) {
+      a.addEventListener("click", function (e) {
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        var u;
+        try { u = new URL(a.getAttribute("href"), location.href); } catch (err) { return; }
+        if (u.origin !== location.origin || u.pathname.replace(/index\.html$/, "") !== here) return;
+        e.preventDefault();
+        try { history.pushState(null, "", u.pathname + u.search + u.hash); } catch (err) {}
+        window.requestAnimationFrame(function () {
+          target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+          var title = document.getElementById("steps-app-title");
+          if (title && title.focus) title.focus({ preventScroll: true });
+        });
+      });
+    });
+  })();
 })();
