@@ -705,6 +705,18 @@ a { color: inherit; }
   font-size: 0.95rem;
 }
 body.has-sticky-buy { padding-bottom: 4.5rem; }
+/* Whole bar is one tap target that jumps to the Get the book options */
+.sticky-link {
+  min-height: 44px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.sticky-link:focus-visible { outline: 2px solid var(--amber); outline-offset: 4px; border-radius: 6px; }
+.sticky-cta { flex: none; pointer-events: none; }
+#get-the-book { scroll-margin-top: calc(4rem + 1.5rem); scroll-margin-bottom: 6rem; }
+#get-the-book:focus { outline: none; }
 
 @media (min-width: 900px) {
   /* Subtle on desktop; still useful after hero */

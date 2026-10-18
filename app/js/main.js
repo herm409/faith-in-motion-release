@@ -22,7 +22,8 @@ const tf = (key, vars) => String(T()[key] || '').replace(/\{(\w+)\}/g, (_, k) =>
 // Draft markers: driven by config.draftMarkers so go-live needs no content edits.
 const draftPill = (what) => (c?.config?.draftMarkers ? h('span', { class: 'draft-pill', 'data-draft': what, title: `${what}: not final yet` }, c.config.draftMarkerText || 'Draft, pending Herman') : null);
 const ap = (el, ...k) => { el.append(...k.flat(Infinity).filter((x) => x !== null && x !== undefined && x !== false && x !== '')); return el; };
-const APP_VERSION = 'preview-1';
+const APP_NAME = 'Faith in Motion: Steps';
+const APP_VERSION = '1.0';
 // steps-five: every new piece of wording comes from fresh.js and carries this pill while config.newWordingDraft is true.
 const nf = (key, vars = {}) => String(N[key] || '').replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
 const draftNew = (what) => (c?.config?.newWordingDraft && (!Array.isArray(c.config.draftOnly) || c.config.draftOnly.includes(what)) ? h('span', { class: 'draft-new', 'data-draft-new': what, title: `${what}: new wording, not final yet` }, c.config.draftMarkerText || 'Draft, pending Herman') : null);
@@ -244,7 +245,7 @@ function viewFork() {
     openingFilm(),
     topbar(),
     h('div', { class: 'fg rise' },
-      h('h1', { class: 'lockup fork-lockup' }, h('b', {}, 'Faith '), h('i', {}, 'in Motion'), h('span', { class: 'steps' }, 'Steps')),
+      h('h1', { class: 'lockup fork-lockup' }, h('b', {}, 'Faith'), ' ', h('i', {}, 'in Motion'), h('span', { class: 'steps' }, 'Steps')),
       h('p', { class: 'fork-hook', text: c.door1.hook }),
       h('div', { class: 'btn-row' },
         h('button', { class: 'btn btn-primary', type: 'button', onclick: async () => { prof = await db.saveProfile({ door: 'have' }); go('/app/'); } }, T().haveBook),
@@ -260,7 +261,7 @@ function d1bar() {
     h('button', { class: 'btn btn-secondary', type: 'button', onclick: async () => { prof = await db.saveProfile({ door: 'have' }); go('/app/'); } }, T().iHaveIt));
 }
 function routePreview() {
-  return h('section', { class: 'route dimmed', 'aria-label': 'Route preview', style: 'border-radius:14px;overflow:hidden;margin:24px 0;min-height:auto' },
+  return h('section', { class: 'route dimmed', 'aria-label': 'Route overview', style: 'border-radius:14px;overflow:hidden;margin:24px 0;min-height:auto' },
     h('div', { class: 'route-map', 'aria-hidden': 'true' }, routeSvg([], null, 360)),
     h('p', { class: 'route-note', text: T().twelveStops }));
 }
@@ -382,7 +383,7 @@ async function viewToday() {
   const quiet = quietCard(byStop, steps, stop, screen);
   const upd = updateWaiting ? h('p', { class: 'update-line' }, T().updated + ' ', h('button', { class: 'textlink', type: 'button', onclick: applyUpdate }, 'Reload')) : null;
   mount(h('main', { class: 'today' }, topbar(),
-    h('div', { class: 'band' }, img(stopImg(stop), { eager: true, altOverride: stopAlt(stop) }), h('p', { class: 'lockup', 'aria-hidden': 'true' }, h('b', {}, 'Faith '), h('i', {}, 'in Motion'))),
+    h('div', { class: 'band' }, img(stopImg(stop), { eager: true, altOverride: stopAlt(stop) }), h('p', { class: 'lockup', 'aria-hidden': 'true' }, h('b', {}, 'Faith'), ' ', h('i', {}, 'in Motion'))),
     h('div', { class: 'sheet' }, h('div', { class: 'sheet-inner' }, h('h1', { class: 'sr-only', text: 'Today' }), upd, quiet, card, partner, notes, motion, vowEl,
       h('p', { style: 'margin-top:28px' }, link('/app/route', 'Open the Route', { class: 'textlink' }))))));
   warm(stop);
@@ -588,7 +589,7 @@ async function viewRoute() {
   });
   ap(map, list);
   mount(h('main', { class: 'route dark' }, topbar({ back: '/app/' }),
-    h('header', { class: 'route-band' }, h('p', { class: 'lockup', style: 'font-size:1.2rem;margin:0' }, h('b', {}, 'Faith '), h('i', {}, 'in Motion')), h('h1', { text: 'The Route' })), map));
+    h('header', { class: 'route-band' }, h('p', { class: 'lockup', style: 'font-size:1.2rem;margin:0' }, h('b', {}, 'Faith'), ' ', h('i', {}, 'in Motion')), h('h1', { text: 'The Route' })), map));
 }
 
 // ---------- Stop screens ----------
@@ -905,7 +906,7 @@ function installMoment() {
       h('button', { class: 'textlink', type: 'button', onclick: () => done(true) }, N.installNever)));
   return box;
 }
-// ---------- steps-groups (preview): Group walks, Option 1, progress only ----------
+// ---------- Group walks, Option 1, progress only ----------
 // What leaves this phone for a group: the stop number you're on and the stop numbers whose step you took. Nothing else.
 async function groupStatus() {
   const steps = await db.all('steps');
@@ -1198,7 +1199,7 @@ async function viewShare() {
     const data = { ...cardData(), coverSrc: '/app/img/cover-480.webp' };
     current = await share.render(data, size);
     Object.assign(current.canvas, { className: 'preview-canvas' });
-    current.canvas.setAttribute('role', 'img'); current.canvas.setAttribute('aria-label', `Card preview: ${data.headline}`);
+    current.canvas.setAttribute('role', 'img'); current.canvas.setAttribute('aria-label', `Share card: ${data.headline}`);
     canvasBox.replaceChildren(current.canvas);
     meta.textContent = `${share.SIZES[size].join(' by ')} pixels. Text contrast ${current.contrast.toFixed(1)} to 1.`;
     setSocial();
@@ -1465,7 +1466,7 @@ function viewAbout() {
     h('ul', { class: 'timeline' }, c.credits.map((cr) => h('li', { style: 'padding:10px 0' }, `${cr.photographer}, `, ext(cr.pageUrl, `Pexels ${cr.kind === 'video' ? 'video' : 'photo'} ${cr.pexelsId}`), h('span', { class: 'meta', text: ` (${cr.slot}). ${cr.license}.` })))),
     h('p', { class: 'help' }, ext('https://www.pexels.com/license/', 'Pexels License')),
     h('h2', { class: 'heading', text: 'Version' }),
-    h('p', { class: 'help', text: `App ${APP_VERSION}. Content ${c.version?.hash || ''} (${c.manifest.version || ''}).` }),
+    h('p', { class: 'help', text: `${APP_NAME} v${APP_VERSION}. Content ${c.version?.hash || ''}.` }),
     h('p', {}, h('button', { class: 'textlink', type: 'button', onclick: openHelpNow }, c.helpNow?.menuLabel || 'Need help now?'))))));
 }
 

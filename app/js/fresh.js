@@ -1,4 +1,4 @@
-// New wording for the steps-five preview. EVERY string here is "Draft, pending Herman" and shows a draft pill
+// New wording from steps-five. EVERY string here is "Draft, pending Herman" and shows a draft pill
 // while config.newWordingDraft is true. Book prompts, quotes and section titles are not here: they are read from content.
 export const N = {
   // 1. Echo earlier answers
@@ -53,7 +53,7 @@ export const N = {
   groupsHeading: 'Small groups', groupsLink: 'Small group leader guide', groupsHelp: 'Discussion questions for every stop, for leaders walking the book together.',
   // Upgrade safety copy
   autoCopy: 'Automatic copy from before the last update', autoRestore: 'Restore the automatic copy', autoConfirm: "Replace this phone's answers with the automatic copy from {when}?",
-  // steps-groups (preview): Group walks, Option 1
+  // Group walks, Option 1
   gwMenu: "Group walks",
   gwTitle: "Group walks",
   gwIntro: "Walk the stops with a few friends. Your group sees only the first name you choose, which stop you are on, and a check when you take your step. Never your answers.",

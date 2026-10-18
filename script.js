@@ -620,4 +620,19 @@
       });
     });
   })();
+  /* Sticky "Get the book" bar (fix 2026-10-18): the whole bar is a link to #get-the-book (paperback + Kindle).
+     Works without JS as a plain anchor; with JS it scrolls smoothly, centers the options and focuses the paperback button. */
+  (function () {
+    var link = document.querySelector("#sticky-buy .sticky-link");
+    var target = document.getElementById("get-the-book");
+    if (!link || !target) return;
+    link.addEventListener("click", function (e) {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      try { history.pushState(null, "", location.pathname + location.search + "#get-the-book"); } catch (err) {}
+      target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+      var first = target.querySelector("a.btn");
+      if (first && first.focus) first.focus({ preventScroll: true });
+    });
+  })();
 })();

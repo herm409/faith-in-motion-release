@@ -296,7 +296,7 @@ input:focus-visible, textarea:focus-visible { outline: 2px solid var(--amber); o
 .quiet-card { border-left: 3px solid var(--amber); }
 .rem h3 { margin-top: 0; }
 .mc-context { font-style: italic; margin-top: 2px; }
-/* ---------- steps-groups (preview) ---------- */
+/* ---------- steps-groups ---------- */
 .gw-members { list-style: none; padding: 0; margin: 10px 0; }
 .gw-member { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; padding: 10px 0; border-top: 1px solid rgba(20, 30, 60, .1); }
 .gw-member:first-child { border-top: 0; }
