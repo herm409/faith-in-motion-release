@@ -1201,6 +1201,7 @@ async function viewShare() {
     current.canvas.setAttribute('role', 'img'); current.canvas.setAttribute('aria-label', `Card preview: ${data.headline}`);
     canvasBox.replaceChildren(current.canvas);
     meta.textContent = `${share.SIZES[size].join(' by ')} pixels. Text contrast ${current.contrast.toFixed(1)} to 1.`;
+    setSocial();
     window.__lastCard = { kind, size, w: current.canvas.width, h: current.canvas.height, contrast: current.contrast, headline: data.headline, sub: data.sub || '', link: `${c.config.appUrl}?src=${tags[kind]}` };
   }
   const chipRow = (opts, getv, setv, label) => { const row = h('div', { class: 'chips', role: 'group', 'aria-label': label });
@@ -1213,14 +1214,33 @@ async function viewShare() {
   const smsHref = () => `sms:${isIOS() ? '?&' : '?'}body=${encodeURIComponent(`${N.inviteLine} ${INVITE}`)}`;
   const walkExtras = h('div', { class: 'btn-row walk-extras' }, h('a', { class: 'btn btn-secondary text-friend', href: smsHref() }, N.textFriend), h('button', { class: 'btn btn-secondary copy-link', type: 'button', onclick: () => copyLink(INVITE) }, N.copyLink), draftNew('Walk with me links'));
   const afterShare = h('div');
+  // Share cards, approved by Herman 8:44 PM CT: the caption + link go to the clipboard on tap (Facebook and Instagram drop
+  // prefilled text), and X / Facebook buttons open their share pages. PRIVACY: the caption is built only from the card's
+  // public content (never the optional public line or any journal field).
+  const cardUrl = () => `${c.config.appUrl}?src=${tags[kind]}`;
+  const caption = () => {
+    const d = cardData();
+    if (kind === 'walk') return c.wwm?.shareText || 'Walk with me?';
+    if (kind === 'verse') return `\u201c${vow.text}\u201d ${vow.ref} (ESV). From ${N.byline}`;
+    if (kind === 'quote' || kind === 'line') return `\u201c${d.headline}\u201d Herman Davis, Faith in Motion.`;
+    return `${d.headline} ${N.byline}`;
+  };
+  const xHref = () => `https://x.com/intent/post?text=${encodeURIComponent(caption())}&url=${encodeURIComponent(cardUrl())}`;
+  const fbHref = () => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(cardUrl())}`;
+  const xBtn = h('a', { class: 'btn btn-secondary social-btn post-x', target: '_blank', rel: 'noopener noreferrer', href: '#' }, icon('xlogo'), h('span', { text: N.postX }));
+  const fbBtn = h('a', { class: 'btn btn-secondary social-btn share-fb', target: '_blank', rel: 'noopener noreferrer', href: '#' }, icon('fblogo'), h('span', { text: N.shareFb }));
+  const socialRow = h('div', { class: 'btn-row social-row' }, xBtn, fbBtn);
+  const setSocial = () => { xBtn.href = xHref(); fbBtn.href = fbHref(); };
   mount(h('main', { class: 'page' }, topbar({ back: have ? '/app/' : '/app/start' }), h('div', { class: 'sheet' }, h('div', { class: 'sheet-inner' },
     h('h1', { class: 'h1', text: 'Share a card' }),
     h('p', { class: 'legend', text: 'Card' }), chipRow(kinds, () => kind, (v) => { kind = v; }, 'Card'),
     h('p', { class: 'legend', text: 'Size' }), chipRow(Object.entries(share.SIZE_LABELS), () => size, (v) => { size = v; }, 'Size'),
     pubWrap, draftNote, anotherQuote, canvasBox, meta, walkExtras, linkStatus,
     h('div', { class: 'btn-row' }, h('button', { class: 'btn btn-primary', type: 'button', onclick: async () => {
-      const url = `${c.config.appUrl}?src=${tags[kind]}`;
+      const url = cardUrl();
       const text = kind === 'walk' ? (c.wwm?.shareText || 'Walk with me?') : 'Faith in Motion by Herman Davis.';
+      // Copy first, inside the same tap, before the share sheet opens. Fails silently if the clipboard is denied.
+      try { navigator.clipboard?.writeText(`${caption()} ${url}`).then(() => toast(N.captionCopied), () => {}); } catch {}
       const r = await share.shareCanvas(current.canvas, `faith-in-motion-${kind}-${size}.png`, text, url);
       if (r === 'downloaded') { // desktop: the image is saved, so offer the link to paste next to it
         const u = kind === 'walk' ? INVITE : url;
@@ -1228,7 +1248,7 @@ async function viewShare() {
           h('div', { class: 'btn-row' }, h('button', { class: 'btn btn-secondary copy-link', type: 'button', onclick: () => copyLink(u) }, N.copyLink), link('/app/sendoff?share=1', N.continue, { class: 'btn btn-primary' }))));
         afterShare.querySelector('button')?.focus();
       } else if (r !== 'cancelled') go('/app/sendoff?share=1');
-    } }, 'Share or download')), afterShare))));
+    } }, 'Share or download')), socialRow, afterShare))));
   await draw();
 }
 

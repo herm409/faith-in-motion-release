@@ -10,7 +10,7 @@ export const N = {
   mcIntro: 'Once a month, the same three questions. Only you see your earlier answers next to this one.',
   sundayIcs: 'Add a weekly Sunday reminder', sundayIcsDone: 'Sunday reminder file ready.', sundayWrote: 'When you set it, you wrote:',
   // 3. Sharing
-  shareStep: 'Share a Step card', copyLink: 'Copy link', copied: 'Link copied.', textFriend: 'Text a friend',
+  shareStep: 'Share a Step card', copyLink: 'Copy link', captionCopied: 'Caption copied. Paste it in your post.', postX: 'Post on X', shareFb: 'Share on Facebook', byline: 'Faith in Motion by Herman Davis.', copied: 'Link copied.', textFriend: 'Text a friend',
   savedDownload: 'The card saved to your downloads. Copy the link to send with it.', continue: 'Continue',
   routeChip: 'All 12 stops', routeHeadline: 'I walked all 12 stops of Faith in Motion.', routeShare: 'Share an "all 12 stops" card',
   shareVerse: 'Share this verse', shareLine: 'Share this line', lineChip: 'This line',

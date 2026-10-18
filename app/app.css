@@ -320,3 +320,8 @@ input:focus-visible, textarea:focus-visible { outline: 2px solid var(--amber); o
 .dark .topbar::before, .route .topbar::before, .full .topbar::before { background: rgba(25, 41, 53, .72); box-shadow: 0 1px 0 rgba(244, 236, 223, .08), 0 8px 18px -10px rgba(0, 0, 0, .5); }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .topbar::before { background: rgba(244, 236, 223, .96); } .dark .topbar::before, .route .topbar::before, .full .topbar::before { background: rgba(25, 41, 53, .94); } }
 @media (prefers-reduced-motion: reduce) { .topbar::before { transition: none; } }
+
+/* Post on X / Share on Facebook (approved by Herman 2026-10-17 8:44 PM CT) */
+.social-row { margin-top: 10px; }
+.social-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+.social-btn svg { width: 20px; height: 20px; flex: none; }
