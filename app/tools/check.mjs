@@ -56,7 +56,7 @@ try {
   // 4c847b0 = app-discovery PREVIEW (announcement bar + bar-early.js, hero app button, /thanks app link). Not on production; approved for preview Oct 18 7:51 AM CT.
   //   Once a branch contains it, thanks.html is pinned to 4c847b0 instead of 405f631.
   // 618834c = app-discovery for production (hero buttons fit the first phone screen, plain 44px close X), approved Oct 18 8:00 AM CT.
-  // 44d55ba = app-section PREVIEW (promo links to #steps-app, browser/home-screen copy). Not on production; preview approved Oct 18 8:11 AM CT.
+  // 44d55ba = app-section (promo links to #steps-app, browser/home-screen copy), preview Oct 18 8:11 AM CT, approved for production Oct 18 8:12 AM CT.
   let APPROVED = 'a38a74c';
   let hasApproved = false;
   for (const pin of ['44d55ba', '618834c', '4c847b0', '5102cab', '03f75b9', '9da0fc0', '465da53', 'a38a74c']) { try { execSync(`git merge-base --is-ancestor ${pin} HEAD`, { cwd }); APPROVED = pin; hasApproved = true; break; } catch {} }
