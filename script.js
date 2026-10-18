@@ -584,4 +584,17 @@
     });
     window.addEventListener("resize", function () { if (window.innerWidth > 640) close(false); });
   })();
+
+  /* Announcement bar (preview 2026-10-18): close stays closed via localStorage. */
+  (function () {
+    var bar = document.getElementById("announce-bar");
+    var close = bar && bar.querySelector(".announce-close");
+    if (!close) return;
+    close.addEventListener("click", function () {
+      try { localStorage.setItem("fim-announce-dismissed", "steps-app-1"); } catch (e) {}
+      document.documentElement.classList.add("announce-off");
+      var mark = document.querySelector(".wordmark");
+      if (mark && mark.focus) mark.focus();
+    });
+  })();
 })();
