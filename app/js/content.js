@@ -72,6 +72,14 @@ export function chapterNum(stop) {
 export function chapterLabel(stop) {
   const n = chapterNum(stop); return /^\d+$/.test(n) ? `Chapter ${n}` : n;
 }
+// Share card wording (approved by Herman 2026-10-17 8:53 PM CT). chapterFrom reads after "From": "Chapter 3" or "the Conclusion".
+export function chapterFrom(stop) {
+  const n = chapterNum(stop); return /^\d+$/.test(n) ? `Chapter ${n}` : `the ${n}`;
+}
+// Ends a headline with one period, unless the title already ends a sentence (e.g. When God Says, "You Do It.").
+export function sentence(t) {
+  const s = String(t ?? '').trim(); return /[.!?]["'\u201d\u2019)]*$/.test(s) ? s : `${s}.`;
+}
 // Verse of the week: ISO week number, week 53 folds to 52. Text is looked up in the named stop (not repeated in the file).
 export function verseOfWeek(c, date = new Date()) {
   if (!c.vow) return null;

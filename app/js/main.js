@@ -1181,11 +1181,11 @@ async function viewShare() {
   const anotherQuote = h('p', {}, h('button', { class: 'textlink', type: 'button', onclick: () => { quoteIdx++; draw(); } }, 'Another quote'));
   // PRIVACY: card text comes only from content files, the stop title, and the optional public line typed above.
   const cardData = () => {
-    const ch = C.chapterNum(stop); const chLabel = /^\d+$/.test(ch) ? `Chapter ${ch}` : `the ${ch}`;
-    if (kind === 'step') return { kind, headline: `I took my ${chLabel} step: ${stop.title}.`, sub: publicLine.value.trim() || null, plate: c.img.items['share-road'] };
-    if (kind === 'stop') return { kind, headline: `I finished Stop ${stop.order}: ${stop.title}.`, plate: c.img.items['share-road'] };
-    if (kind === 'verse') return { kind, headline: vow.text, sub: `${vow.ref} (ESV). From ${vow.stop ? C.chapterLabel(vow.stop) : 'a chapter'} of Faith in Motion`, plate: c.img.items['share-water'] };
-    if (kind === 'line') return { kind, headline: lineStop.screens[lineScreen].quote, sub: `From ${C.chapterLabel(lineStop)} of Faith in Motion`, plate: c.img.items['share-water'] };
+    // "my Chapter 3 step", "my Conclusion step" (never "my the Conclusion step"); titles ending in punctuation get no extra period.
+    if (kind === 'step') return { kind, headline: `I took my ${C.chapterLabel(stop)} step: ${C.sentence(stop.title)}`, sub: publicLine.value.trim() || null, plate: c.img.items['share-road'] };
+    if (kind === 'stop') return { kind, headline: `I finished Stop ${stop.order}: ${C.sentence(stop.title)}`, plate: c.img.items['share-road'] };
+    if (kind === 'verse') return { kind, headline: vow.text, sub: `${vow.ref} (ESV). From ${vow.stop ? C.chapterFrom(vow.stop) : 'a chapter'} of Faith in Motion`, plate: c.img.items['share-water'] };
+    if (kind === 'line') return { kind, headline: lineStop.screens[lineScreen].quote, sub: `From ${C.chapterFrom(lineStop)} of Faith in Motion`, plate: c.img.items['share-water'] };
     if (kind === 'route') return { kind, headline: N.routeHeadline, plate: c.img.items['share-road'] };
     if (kind === 'onward') return { kind, headline: N.onwardHeadline, plate: c.img.items['share-walk'] };
     if (kind === 'quote') { const cd = cards[quoteIdx % cards.length]; return { kind, headline: cd.quote, sub: cd.attribution.replace(/\s*faithinmotionbook\.com\/app\s*$/, ''), plate: c.img.items['share-water'] }; }
