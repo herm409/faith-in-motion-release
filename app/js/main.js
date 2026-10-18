@@ -919,10 +919,11 @@ async function pushGroupStatus(force) {
 async function viewGroups(inviteCode) {
   document.title = `${N.gwTitle} | Steps`;
   if (inviteCode) sessionStorage.setItem('fim-pending-join', String(inviteCode).toUpperCase().slice(0, 6));
-  const pending = sessionStorage.getItem('fim-pending-join') || '';
+  let pending = sessionStorage.getItem('fim-pending-join') || '';
   const body = h('div', { class: 'sheet-inner gw' });
   mount(h('main', { class: 'page groups' }, topbar({ back: '/app/' }), h('div', { class: 'sheet' }, body)));
-  const head = [h('h1', { class: 'h1' }, N.gwTitle, ' ', draftNew('Group walks')), pending ? h('p', { class: 'gw-invited', text: N.gwInvited }) : null, h('p', { class: 'prose', text: N.gwIntro })].filter(Boolean);
+  const headFn = () => [h('h1', { class: 'h1' }, N.gwTitle, ' ', draftNew('Group walks')), pending ? h('p', { class: 'gw-invited', text: N.gwInvited }) : null, h('p', { class: 'prose', text: N.gwIntro })].filter(Boolean);
+  const head = headFn();
   if (!account.signedIn() || account.state()?.needsSignIn) {
     body.replaceChildren(...head, h('p', { text: N.gwSignIn }), h('p', {}, link('/app/account', N.gwSignInBtn, { class: 'btn btn-primary' })), h('p', { class: 'help', text: N.gwAdults }));
     return;
@@ -934,7 +935,7 @@ async function viewGroups(inviteCode) {
   let groups = [];
   const act = async (payload, confirmText) => {
     if (confirmText && !confirm(confirmText)) return;
-    try { const r = await account.groups('POST', payload); groups = r.groups || groups; localStorage.setItem('fim-groups-joined', String(groups.length)); if (payload.action === 'join') sessionStorage.removeItem('fim-pending-join'); if (payload.action === 'join' || payload.action === 'create') await pushGroupStatus(true); if (payload.action === 'join' || payload.action === 'create') groups = (await account.groups()).groups || groups; status.textContent = ''; render(); }
+    try { const r = await account.groups('POST', payload); groups = r.groups || groups; localStorage.setItem('fim-groups-joined', String(groups.length)); if (payload.action === 'join') { sessionStorage.removeItem('fim-pending-join'); pending = ''; } if (payload.action === 'join' || payload.action === 'create') await pushGroupStatus(true); if (payload.action === 'join' || payload.action === 'create') groups = (await account.groups()).groups || groups; status.textContent = ''; render(); }
     catch (e) { status.textContent = msg(e); }
   };
   const memberRow = (g, m) => h('li', { class: `gw-member${m.me ? ' me' : ''}` },
@@ -963,7 +964,7 @@ async function viewGroups(inviteCode) {
         ? h('button', { class: 'textlink gw-close', type: 'button', onclick: () => act({ action: 'close', group: g.id }, N.gwCloseConfirm) }, N.gwClose)
         : h('button', { class: 'textlink gw-leave', type: 'button', onclick: () => act({ action: 'leave', group: g.id }, N.gwLeaveConfirm) }, N.gwLeave)));
   };
-  const render = () => body.replaceChildren(...head, status,
+  const render = () => body.replaceChildren(...headFn(), status,
     ...groups.map(groupCard),
     h('section', { class: 'card gw-join' }, h('h2', { text: N.gwJoinTitle }), input('gw-code', N.gwCode, { value: pending, maxlength: 6, autocapitalize: 'characters', spellcheck: 'false' }), input('gw-join-first', N.gwFirstName, { maxlength: 30 }),
       h('p', { class: 'help', text: N.gwShared }),
