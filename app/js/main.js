@@ -413,12 +413,21 @@ async function motionCheck(byStop = {}) {
   const ind = savedIndicator();
   const save = debounce(async () => { await db.put('motionChecks', cur); flashSaved(ind); }, 400);
   const firsts = prompts.map((p) => firstAnswerFor(p, byStop));
-  return h('section', { class: 'card motion-check' }, h('h3', {}, c.strings.motionCheckTitle || 'Motion check', ' ', draftNew('Motion check')), h('p', { class: 'help', text: N.mcIntro }), prompts.map((p, i) => h('div', { class: 'field' },
+  // Context gate (approved 6:59 PM CT): the card waits for Stop 3; each prompt waits for the stop it comes from.
+  // Saved answers are never hidden: a prompt with an answer in this month or last month always shows, and so does the card.
+  const meta = Array.isArray(c.strings.motionCheckMeta) ? c.strings.motionCheckMeta : [];
+  const finished = (order) => { const st = c.stops.find((x) => x.order === order); const p = st && byStop[st.id]; return !!(p && (p.finishedAt || p.review?.verdict)); };
+  const finishedId = (id) => { const p = byStop[id]; return !!(p && (p.finishedAt || p.review?.verdict)); };
+  const saved = (i) => !!((cur.answers?.[i] || '').trim() || (last?.answers?.[i] || '').trim());
+  const show = prompts.map((p, i) => saved(i) || (finished(3) && !!meta[i]?.fromStop && finishedId(meta[i].fromStop)));
+  if (!show.some(Boolean)) return null;
+  return h('section', { class: 'card motion-check' }, h('h3', {}, c.strings.motionCheckTitle || 'Motion check', ' ', draftNew('Motion check')), h('p', { class: 'help', text: N.mcIntro }), prompts.map((p, i) => !show[i] ? null : h('div', { class: 'field' },
     h('label', { for: `mc-${i}`, text: p }),
+    meta[i]?.context ? h('p', { class: 'help mc-context', text: meta[i].context }) : null,
     firsts[i] ? h('p', { class: 'help first-answer' }, h('b', {}, nf('atStopN', { n: firsts[i].stop.order }), ' '), firsts[i].text) : null,
     last?.answers?.[i] ? h('p', { class: 'help', text: `Last month: ${last.answers[i]}` }) : null,
     h('textarea', { id: `mc-${i}`, oninput: (e) => { cur.answers[i] = e.target.value; save(); } }, cur.answers[i] || ''))), ind,
-    firsts.some(Boolean) ? onwardRow() : null);
+    firsts.some((f, i) => f && show[i]) ? onwardRow() : null);
 }
 // E: a share card with nothing private on it, plus the testimony form.
 const onwardRow = () => h('div', { class: 'btn-row onward' }, link('/app/share?card=onward', N.shareOnward, { class: 'btn btn-secondary' }), link('/app/testimony?stop=plan', N.tellHerman, { class: 'btn btn-secondary' }), draftNew('Before and after'));

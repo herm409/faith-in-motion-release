@@ -295,3 +295,4 @@ input:focus-visible, textarea:focus-visible { outline: 2px solid var(--amber); o
 .install-moment h2 { font-size: 22px; margin: 0 0 6px; } .install-moment p { margin: 6px 0; }
 .quiet-card { border-left: 3px solid var(--amber); }
 .rem h3 { margin-top: 0; }
+.mc-context { font-style: italic; margin-top: 2px; }

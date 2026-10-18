@@ -5,5 +5,20 @@
   "Which half do I need most right now: rest in God's sovereignty, or motion in stewardship?",
   "Which costume fits me most right now?"
  ],
- "_source": "Prompts reused word for word: Stop 0 Name it (2nd prompt), Stop 0 Build (1st prompt), Stop 8 Name it (1st prompt). Plan L5."
+ "_source": "Prompts reused word for word: Stop 0 Name it (2nd prompt), Stop 0 Build (1st prompt), Stop 8 Name it (1st prompt). Plan L5.",
+ "motionCheckMeta": [
+  {
+   "fromStop": "s0",
+   "context": "From Stop 0: your standstill is the place you froze and called it faith."
+  },
+  {
+   "fromStop": "s0",
+   "context": "From Stop 0: some of us need more rest in God's sovereignty, and some need more motion in stewardship."
+  },
+  {
+   "fromStop": "s8",
+   "context": "From Stop 8: the costumes are church phrases fear hides behind, like \"I'm waiting on God.\""
+  }
+ ],
+ "motionCheckRule": "The Motion check card shows on Today once Stop 3 is completed (finished, or reviewed). Each prompt in motionCheck shows once its motionCheckMeta[i].fromStop is completed. Answers stay keyed by index. A prompt with a saved answer always shows. Added 2026-10-17 (approved by Herman 6:59 PM CT); motionCheck is unchanged for older app versions."
 }
