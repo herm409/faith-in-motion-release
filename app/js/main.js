@@ -25,7 +25,7 @@ const ap = (el, ...k) => { el.append(...k.flat(Infinity).filter((x) => x !== nul
 const APP_VERSION = 'preview-1';
 // steps-five: every new piece of wording comes from fresh.js and carries this pill while config.newWordingDraft is true.
 const nf = (key, vars = {}) => String(N[key] || '').replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
-const draftNew = (what) => (c?.config?.newWordingDraft ? h('span', { class: 'draft-new', 'data-draft-new': what, title: `${what}: new wording, not final yet` }, c.config.draftMarkerText || 'Draft, pending Herman') : null);
+const draftNew = (what) => (c?.config?.newWordingDraft && (!Array.isArray(c.config.draftOnly) || c.config.draftOnly.includes(what)) ? h('span', { class: 'draft-new', 'data-draft-new': what, title: `${what}: new wording, not final yet` }, c.config.draftMarkerText || 'Draft, pending Herman') : null);
 async function byStopAll() { return Object.fromEntries((await db.all('stopProgress')).map((x) => [x.stopId, x])); }
 // Private echo of the reader's own words. Shown only on this device, never on a card.
 const echo = (label, text, sub, what) => h('div', { class: 'card echo' }, h('p', { class: 'label', style: 'margin-top:0' }, label, ' ', draftNew(what)), h('p', { class: 'echo-text', text }), sub ? h('p', { class: 'help', text: sub }) : null);
@@ -150,6 +150,7 @@ function openMenu() {
     item('share', 'Share a card', '/app/share'),
     item('chat', 'Send a testimony', '/app/testimony'),
     have ? item('sun', N.remMenu, '/app/reminders') : null,
+    c.config?.groupWalks ? item('share', N.gwMenu, '/app/groups') : null,
     !isStandalone() ? h('li', {}, h('button', { type: 'button', onclick: () => { closeSheet(true); offerInstall(true); } }, icon('phone'), 'Install the app')) : null,
     item('phone', account.signedIn() ? 'Account and sync' : 'Sign in to sync', '/app/account'),
     item('archive', 'Backup and restore', '/app/backup'),
@@ -198,6 +199,8 @@ async function render() {
   if (a === 'steps') return viewSteps();
   if (a === 'plan') return viewPlan();
   if (a === 'reminders') return viewReminders();
+  if (a === 'groups' && c.config?.groupWalks) return viewGroups();
+  if (a === 'g' && c.config?.groupWalks) return viewGroups(b);
   if (a === 'journal') return viewJournal();
   if (a === 'share') return viewShare();
   if (a === 'testimony') return viewTestimony();
@@ -329,6 +332,7 @@ function nextScreen() {
 }
 async function viewToday() {
   document.title = 'Today | Steps';
+  pushGroupStatus();
   const step = await currentStep();
   const { stop, screen } = nextScreen();
   const steps = await db.all('steps');
@@ -896,6 +900,82 @@ function installMoment() {
       h('button', { class: 'textlink', type: 'button', onclick: () => done(true) }, N.installNever)));
   return box;
 }
+// ---------- steps-groups (preview): Group walks, Option 1, progress only ----------
+// What leaves this phone for a group: the stop number you're on and the stop numbers whose step you took. Nothing else.
+async function groupStatus() {
+  const steps = await db.all('steps');
+  const order = (id) => C.stopById(c, id)?.order;
+  const stop = prof?.lastStopId ? order(prof.lastStopId) : null;
+  const taken = [...new Set(steps.filter((s) => s.doneAt || s.outcome === 'traded').map((s) => order(s.stopId)).filter((n) => Number.isInteger(n)))].sort((a, b) => a - b);
+  return { stop: Number.isInteger(stop) ? stop : null, stepsTaken: taken };
+}
+async function pushGroupStatus(force) {
+  if (!c.config?.groupWalks || !account.signedIn() || (!force && !localStorage.getItem('fim-groups-joined'))) return;
+  const s = await groupStatus(); const key = JSON.stringify(s);
+  if (!force && localStorage.getItem('fim-groups-last') === key) return;
+  try { await account.groups('POST', { action: 'status', ...s }); localStorage.setItem('fim-groups-last', key); } catch { /* try again next time */ }
+}
+async function viewGroups(inviteCode) {
+  document.title = `${N.gwTitle} | Steps`;
+  if (inviteCode) sessionStorage.setItem('fim-pending-join', String(inviteCode).toUpperCase().slice(0, 6));
+  const pending = sessionStorage.getItem('fim-pending-join') || '';
+  const body = h('div', { class: 'sheet-inner gw' });
+  mount(h('main', { class: 'page groups' }, topbar({ back: '/app/' }), h('div', { class: 'sheet' }, body)));
+  const head = [h('h1', { class: 'h1' }, N.gwTitle, ' ', draftNew('Group walks')), pending ? h('p', { class: 'gw-invited', text: N.gwInvited }) : null, h('p', { class: 'prose', text: N.gwIntro })];
+  if (!account.signedIn() || account.state()?.needsSignIn) {
+    body.replaceChildren(...head, h('p', { text: N.gwSignIn }), h('p', {}, link('/app/account', N.gwSignInBtn, { class: 'btn btn-primary' })), h('p', { class: 'help', text: N.gwAdults }));
+    return;
+  }
+  const status = h('p', { class: 'gw-status', role: 'status' });
+  const msg = (e) => ({ 'group-full': N.gwFull, 'bad-code': N.gwBadCode, 'too-many-groups': N.gwTooMany }[e?.message] || (navigator.onLine === false ? N.gwOffline : N.gwError));
+  const input = (id, label, attrs = {}) => h('div', { class: 'field' }, h('label', { for: id, text: label }), h('input', { id, type: 'text', autocomplete: 'off', ...attrs }));
+  const val = (id) => body.querySelector(`#${id}`)?.value || '';
+  let groups = [];
+  const act = async (payload, confirmText) => {
+    if (confirmText && !confirm(confirmText)) return;
+    try { const r = await account.groups('POST', payload); groups = r.groups || groups; localStorage.setItem('fim-groups-joined', String(groups.length)); if (payload.action === 'join') sessionStorage.removeItem('fim-pending-join'); if (payload.action === 'join' || payload.action === 'create') await pushGroupStatus(true); if (payload.action === 'join' || payload.action === 'create') groups = (await account.groups()).groups || groups; status.textContent = ''; render(); }
+    catch (e) { status.textContent = msg(e); }
+  };
+  const memberRow = (g, m) => h('li', { class: `gw-member${m.me ? ' me' : ''}` },
+    h('span', { class: 'gw-name' }, m.firstName, m.me ? ` ${N.gwYou}` : ''),
+    h('span', { class: 'gw-stop', text: m.stop === null ? N.gwNotStarted : nf('gwStop', { n: m.stop }) }),
+    m.stop !== null && m.stepsTaken.includes(m.stop) ? h('span', { class: 'gw-took' }, h('span', { 'aria-hidden': 'true', text: '\u2713 ' }), N.gwTook) : null, // never shows who has not taken a step
+    g.leader && m.id ? h('button', { class: 'textlink gw-remove', type: 'button', onclick: () => act({ action: 'remove', group: g.id, member: m.id }, nf('gwRemoveConfirm', { name: m.firstName })) }, N.gwRemove) : null);
+  const groupCard = (g) => {
+    const me = g.members.find((m) => m.me);
+    const url = `${location.origin}/app/g/${g.code}`;
+    const invite = async (e) => { const text = nf('gwInviteText', { code: g.code, url }); if (navigator.share) { try { await navigator.share({ text }); return; } catch (err) { if (err.name === 'AbortError') return; } } try { await navigator.clipboard.writeText(text); e.target.closest('.gw-group').querySelector('.gw-note').textContent = N.gwCopied; } catch { e.target.closest('.gw-group').querySelector('.gw-note').textContent = text; } };
+    return h('section', { class: 'card gw-group', 'data-group': g.id },
+      h('h2', { class: 'gw-gname', text: g.name }), h('p', { class: 'meta', text: `${nf('gwCount', { n: g.members.length })}${g.leader ? ` \u00b7 ${N.gwLeader}` : ''}` }),
+      h('ul', { class: 'gw-members' }, g.members.map((m) => memberRow(g, m))),
+      g.leader ? h('div', { class: 'gw-lead' },
+        h('p', { class: 'gw-code', text: nf('gwCodeLabel', { code: g.code }) }),
+        h('div', { class: 'btn-row' }, h('button', { class: 'btn btn-primary', type: 'button', onclick: invite }, N.gwInvite),
+          h('button', { class: 'btn btn-secondary', type: 'button', onclick: () => act({ action: 'newCode', group: g.id }, N.gwNewCodeHelp) }, N.gwNewCode)),
+        h('details', {}, h('summary', { text: N.gwRename }), input(`gw-rename-${g.id}`, N.gwGroupName, { value: g.name, maxlength: 60 }),
+          h('button', { class: 'btn btn-secondary', type: 'button', onclick: () => act({ action: 'rename', group: g.id, name: val(`gw-rename-${g.id}`) }) }, N.gwSave)),
+        h('p', {}, ext('/groups/', N.gwLeaderGuide, { class: 'textlink' }))) : null,
+      h('p', { class: 'gw-note quiet' }),
+      h('details', {}, h('summary', { text: N.gwChangeName }), input(`gw-first-${g.id}`, N.gwFirstName, { value: me?.firstName || '', maxlength: 30 }),
+        h('button', { class: 'btn btn-secondary', type: 'button', onclick: () => act({ action: 'firstName', group: g.id, firstName: val(`gw-first-${g.id}`) }) }, N.gwSave)),
+      h('p', {}, g.leader
+        ? h('button', { class: 'textlink gw-close', type: 'button', onclick: () => act({ action: 'close', group: g.id }, N.gwCloseConfirm) }, N.gwClose)
+        : h('button', { class: 'textlink gw-leave', type: 'button', onclick: () => act({ action: 'leave', group: g.id }, N.gwLeaveConfirm) }, N.gwLeave)));
+  };
+  const render = () => body.replaceChildren(...head, status,
+    ...groups.map(groupCard),
+    h('section', { class: 'card gw-join' }, h('h2', { text: N.gwJoinTitle }), input('gw-code', N.gwCode, { value: pending, maxlength: 6, autocapitalize: 'characters', spellcheck: 'false' }), input('gw-join-first', N.gwFirstName, { maxlength: 30 }),
+      h('p', { class: 'help', text: N.gwShared }),
+      h('button', { class: 'btn btn-primary', type: 'button', onclick: () => act({ action: 'join', code: val('gw-code').trim(), firstName: val('gw-join-first') }) }, N.gwJoin)),
+    h('section', { class: 'card gw-start' }, h('h2', { text: N.gwStart }), input('gw-name', N.gwGroupName, { maxlength: 60 }), input('gw-start-first', N.gwFirstName, { maxlength: 30 }),
+      h('p', { class: 'help', text: N.gwShared }),
+      h('button', { class: 'btn btn-secondary', type: 'button', onclick: () => act({ action: 'create', name: val('gw-name'), firstName: val('gw-start-first') }) }, N.gwCreate)),
+    h('p', { class: 'help', text: N.gwAdults }));
+  try { groups = (await account.groups()).groups || []; localStorage.setItem('fim-groups-joined', String(groups.length)); if (groups.length) { await pushGroupStatus(); groups = (await account.groups()).groups || groups; } }
+  catch (e) { status.textContent = msg(e); }
+  render();
+  if (pending) body.querySelector('.gw-join')?.scrollIntoView({ block: 'center' });
+}
 async function viewJournal() {
   document.title = `${N.journalTitle} | Steps`;
   const byStop = await byStopAll(); const steps = await db.all('steps');
@@ -1341,6 +1421,7 @@ function viewAbout() {
     h('h1', { class: 'h1', text: c.door1.about?.heading || 'About' }),
     h('div', { class: 'prose' }, paras(c.door1.about?.body || '')),
     h('p', { style: 'font-weight:600', text: T().aboutPrivacy }), draftPill('Privacy wording'),
+    c.config?.groupWalks ? h('p', { class: 'gw-privacy' }, N.gwPrivacy, ' ', draftNew('Group walks privacy line')) : null,
     h('p', {}, link('/app/account', account.signedIn() ? 'Account and sync' : 'Sign in to use Steps on any device', { class: 'textlink' })),
     h('h2', { class: 'heading', text: T().devoAboutHeading }), devoMention('prose'),
     h('h2', { class: 'heading' }, N.groupsHeading, ' ', draftNew('Leader guide link')), h('p', { class: 'prose', text: N.groupsHelp }), h('p', {}, ext('/groups/', N.groupsLink, { class: 'textlink leader-link' })),

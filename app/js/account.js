@@ -47,6 +47,7 @@ export async function deleteAccount({ eraseLocal }) {
   if (eraseLocal) await db.wipeAll();
   return r;
 }
+export function groups(method = 'GET', body) { return call('/api/groups', { method, body, auth: true }); }
 export function summary() { return call('/api/account', { auth: true }); }
 
 // Push this device's newer fields, then pull everything newer from the account.

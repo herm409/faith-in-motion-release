@@ -13,6 +13,13 @@
   "appUrl": "https://faithinmotionbook.com/app/",
   "signupUrl": "https://faithinmotionbook.com/#notify-form",
   "introPdf": "/assets/faith-in-motion-introduction-sample.pdf",
-  "newWordingDraft": false,
-  "_newWordingDraftNote": "steps-next preview: true shows Draft, pending Herman pills on new wording in the app and on /groups/. Must be false to ship."
+  "newWordingDraft": true,
+  "_newWordingDraftNote": "steps-next preview: true shows Draft, pending Herman pills on new wording in the app and on /groups/. Must be false to ship.",
+  "groupWalks": true,
+  "_groupWalksNote": "steps-groups preview only: true shows Group walks (needs the fim.groups tables, which exist only on the Neon preview branch). check.mjs fails if true on steps-prod-golive.",
+  "draftOnly": [
+    "Group walks",
+    "Group walks privacy line"
+  ],
+  "_draftOnlyNote": "When set, only these new pieces of wording carry the Draft, pending Herman pill (everything else is already approved)."
 }

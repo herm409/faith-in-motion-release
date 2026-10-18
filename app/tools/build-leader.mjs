@@ -11,7 +11,7 @@ const cfg = JSON.parse(readFileSync(join(APP, 'config.json'), 'utf8'));
 const manifest = JSON.parse(readFileSync(join(C, 'manifest.json'), 'utf8'));
 const stops = manifest.stops.map((s) => JSON.parse(readFileSync(join(C, s.file), 'utf8'))).sort((a, b) => a.order - b.order);
 const esv = readFileSync(join(C, 'esv-notice.txt'), 'utf8').trim();
-const DRAFT = cfg.newWordingDraft ? ' <span class="draft-new">Draft, pending Herman</span>' : '';
+const DRAFT = cfg.newWordingDraft && (!Array.isArray(cfg.draftOnly) || cfg.draftOnly.includes('Leader guide')) ? ' <span class="draft-new">Draft, pending Herman</span>' : '';
 export const L = { // new wording (Draft, pending Herman)
   title: 'Small group leader guide', lede: 'Walk Faith in Motion together, one stop a week. Twelve stops, one for each part of the book.',
   how: 'How to use this guide', howItems: ['Before you meet, everyone reads the section named under "Read before you meet."', 'Open with the key verses and the book line.', 'Pick two or three questions. You do not need to use them all.', 'Close by having each person name one step for the week, then start the next meeting by asking how it went.', 'Private answers stay private. No one has to share what they wrote in the app.'],
