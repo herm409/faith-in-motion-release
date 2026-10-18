@@ -1229,7 +1229,6 @@ async function viewShare() {
   // Share cards, approved by Herman 8:44 PM CT: the caption + link go to the clipboard on tap (Facebook and Instagram drop
   // prefilled text), and X / Facebook buttons open their share pages. PRIVACY: the caption is built only from the card's
   // public content (never the optional public line or any journal field).
-  const cardUrl = () => `${c.config.appUrl}?src=${tags[kind]}`;
   // The first line says what the card says; then the book, the book link, the app link and one tag.
   const capLine = () => {
     const d = cardData();
@@ -1238,12 +1237,13 @@ async function viewShare() {
     if (kind === 'quote' || kind === 'line') return `\u201c${d.headline}\u201d`;
     return d.headline;
   };
+  const SITE = 'https://faithinmotionbook.com';
   const tag = U.tags || '#FaithInMotionBook #FaithInMotion';
   const caption = () => [capLine(), '', U.byline || 'Faith in Motion by Herman Davis', U.getBook || 'Get the book and the free app: https://faithinmotionbook.com', tag].join('\n');
   const copyCap = () => { try { return navigator.clipboard.writeText(caption()).then(() => true, () => false); } catch { return Promise.resolve(false); } };
   const copyBtn = () => h('button', { class: 'btn btn-secondary copy-caption', type: 'button', onclick: async (e) => { const b = e.currentTarget; b.textContent = (await copyCap()) ? U.captionCopied || 'Caption copied.' : U.step1Fail || 'Copy not available here'; } }, U.copyCaption || 'Copy caption');
-  const xHref = () => `https://x.com/intent/post?text=${encodeURIComponent(`${capLine()} ${tag}`)}&url=${encodeURIComponent(cardUrl())}`;
-  const fbHref = () => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(cardUrl())}`;
+  const xHref = () => `https://x.com/intent/post?text=${encodeURIComponent(`${capLine()} ${tag}`)}&url=${encodeURIComponent(SITE)}`;
+  const fbHref = () => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SITE)}`;
   const xBtn = h('a', { class: 'btn btn-secondary social-btn post-x', target: '_blank', rel: 'noopener noreferrer', href: '#' }, icon('xlogo'), h('span', { text: N.postX }));
   const fbBtn = h('a', { class: 'btn btn-secondary social-btn share-fb', target: '_blank', rel: 'noopener noreferrer', href: '#' }, icon('fblogo'), h('span', { text: N.shareFb }));
   const socialRow = h('div', { class: 'btn-row social-row' }, xBtn, fbBtn);
