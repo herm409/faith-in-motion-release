@@ -161,6 +161,7 @@ function openMenu() {
     item('phone', account.signedIn() ? 'Account and sync' : 'Sign in to sync', '/app/account'),
     item('archive', 'Backup and restore', '/app/backup'),
     item('info', 'About', '/app/about'),
+    h('li', {}, h('a', { href: 'https://faithinmotionbook.com', target: '_blank', rel: 'noopener', 'aria-label': 'Visit the website, faithinmotionbook.com, opens in a new tab' }, icon('external'), 'Visit the website')),
     have ? null : item('download', T().getBook, '/app/start/book'));
   openSheet('Menu', list);
 }
@@ -305,7 +306,8 @@ function viewDoor1(sub) {
         h('h2', { id: 'gift-h', class: 'heading', text: d.buy.gift.label }),
         h('p', { class: 'prose', text: T().giftLine }),
         draftPill('Prices'), h('div', { class: 'btn-row' }, ext(c.config.paperbackUrl, `Gift the paperback, ${d.buy.paperback.price}`, { class: 'btn btn-secondary' }), ext(c.config.kindleUrl, `Gift the Kindle edition, ${d.buy.kindle.price}`, { class: 'btn btn-secondary' }))),
-      devoBlock());
+      devoBlock(),
+      h('p', { class: 'fineline', style: 'margin-top:20px' }, ext('https://faithinmotionbook.com', 'faithinmotionbook.com', { 'aria-label': 'Visit faithinmotionbook.com, opens in a new tab' })));
     if (location.hash === '#gift' || location.hash === '#devotionals') setTimeout(() => document.getElementById(location.hash.slice(1))?.scrollIntoView(), 50);
     return;
   }
