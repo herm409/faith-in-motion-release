@@ -155,6 +155,7 @@ function openMenu() {
     have ? item('path', N.planMenu, '/app/plan') : null,
     item('share', 'Share a card', '/app/share'),
     item('chat', 'Send a testimony', '/app/testimony'),
+    item('chat', R().menu || 'Review the book', '/app/review'),
     have ? item('sun', N.remMenu, '/app/reminders') : null,
     c.config?.groupWalks ? item('share', N.gwMenu, '/app/groups') : null,
     !isStandalone() ? h('li', {}, h('button', { type: 'button', onclick: () => { closeSheet(true); offerInstall(true); } }, icon('phone'), 'Install the app')) : null,
@@ -211,6 +212,7 @@ async function render() {
   if (a === 'journal') return viewJournal();
   if (a === 'share') return viewShare();
   if (a === 'testimony') return viewTestimony();
+  if (a === 'review') return viewReview();
   if (a === 'backup') return viewBackup();
   if (a === 'about') return viewAbout();
   if (a === 'account') return viewAccount(b);
@@ -1106,6 +1108,17 @@ function warm(stop) {
   navigator.serviceWorker?.controller?.postMessage({ warm: ids.flatMap((id) => [c.img.items[id]?.src['640'], c.img.items[id]?.src['1080']]).filter(Boolean) });
 }
 
+const RK = 'fim-review-left', RS = { s2: 'early', s6: 'mid', s11: 'final' }, R = () => T().review || {};
+const rLeft = () => !!localStorage.getItem(RK);
+function rBox(hd, tx, cls) {
+  const st = h('p', { class: 'help', 'aria-live': 'polite', text: cls ? '' : rLeft() ? R().marked : '' });
+  const mk = h('button', { class: 'btn btn-secondary review-mark', type: 'button', hidden: true, onclick: () => { localStorage.setItem(RK, new Date().toISOString()); mk.hidden = true; st.textContent = R().thanks; } }, R().mark);
+  const tap = () => { mk.hidden = false; };
+  return h('div', { class: cls || 'sheet-inner' }, h(cls ? 'h2' : 'h1', { class: cls ? 'heading' : 'h1', text: hd }), h('p', { text: tx }), h('div', { class: 'btn-row' }, ext(c.config.reviewKindleUrl, R().kindle, { class: 'btn btn-primary', onclick: tap }), ext(c.config.reviewPaperbackUrl, R().paper, { class: 'btn btn-secondary', onclick: tap })), mk, st);
+}
+const reviewAsk = (d) => { const p = R()[RS[d.id]]; return p && !rLeft() ? rBox(p[0], p[1], 'card review-ask') : null; };
+function viewReview() { document.title = `${R().menu} | Steps`; mount(h('main', { class: 'page' }, topbar({ back: '/app/' }), h('div', { class: 'sheet' }, rBox(R().menu, R().intro)))); }
+
 // ---------- Send-off ----------
 function viewSendoff() {
   document.title = 'Go take your step | Steps';
@@ -1138,6 +1151,7 @@ function viewSendoff() {
       !d1 && !fromShare && stop.screens[screen] ? h('p', { class: 'lede quiet-light', text: tf('upNextIn', { n: stop.order, screen: SCREEN_NAMES[screen] }) }) : null,
       shareTook(), back];
   }
+  if (done && !d1) { const rv = reviewAsk(done); if (rv) fg.splice(fg.length - 1, 0, rv); }
   if (done) fg.push(installMoment());
   mount(h('main', { class: `dark full sendoff${done ? ' stop-complete' : ''}` },
     h('div', { class: 'bg' }, img(stopImg(next || stop) || c.img.items.door1, { eager: true, altOverride: '' }), done && !reducedMotion() ? h('div', { class: 'glint', 'aria-hidden': 'true' }) : null), topbar(),

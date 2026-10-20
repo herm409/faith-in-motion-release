@@ -11,7 +11,7 @@ const raw = (files) => files.reduce((n, f) => n + statSync(f).size, 0);
 const KB = (n) => Math.round(n / 1024);
 let fail = 0; const row = (name, val, max) => { const ok = val <= max; if (!ok) fail++; console.log(`${ok ? 'OK  ' : 'FAIL'} ${name}: ${KB(val)} KB (budget ${KB(max)} KB)`); };
 const js = walk(join(APP, 'js')).filter((f) => f.endsWith('.js'));
-row('JS gzipped', gz(js), 60 * 1024);
+row('JS gzipped', gz(js), 61 * 1024); // 60 to 61 KB for the Amazon review asks (2026-10-20)
 row('CSS gzipped', gz([join(APP, 'app.css')]), 20 * 1024);
 row('Fonts', raw(walk(join(APP, 'fonts'))), 180 * 1024);
 row('Content', raw(walk(join(APP, 'content'))), 250 * 1024);

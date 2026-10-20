@@ -20,5 +20,26 @@
    "context": "From Stop 8: the costumes are church phrases fear hides behind, like \"I'm waiting on God.\""
   }
  ],
- "motionCheckRule": "The Motion check card shows on Today once Stop 3 is completed (finished, or reviewed). Each prompt in motionCheck shows once its motionCheckMeta[i].fromStop is completed. Answers stay keyed by index. A prompt with a saved answer always shows. Added 2026-10-17 (approved by Herman 6:59 PM CT); motionCheck is unchanged for older app versions."
+ "motionCheckRule": "The Motion check card shows on Today once Stop 3 is completed (finished, or reviewed). Each prompt in motionCheck shows once its motionCheckMeta[i].fromStop is completed. Answers stay keyed by index. A prompt with a saved answer always shows. Added 2026-10-17 (approved by Herman 6:59 PM CT); motionCheck is unchanged for older app versions.",
+ "review": {
+  "early": [
+   "Is the book helping?",
+   "If these first stops have meant something to you, a short Amazon review helps another reader find the book. One honest sentence is plenty."
+  ],
+  "mid": [
+   "Halfway there",
+   "You've walked half the route. If the book is helping you move, would you tell others on Amazon? A few words make a real difference."
+  ],
+  "final": [
+   "You finished the route",
+   "Thank you for walking every stop. Would you share what changed for you in a quick Amazon review? It helps the next person take their first step."
+  ],
+  "menu": "Review the book",
+  "intro": "An honest Amazon review is one of the best ways to help another reader find Faith in Motion. A sentence or two is plenty. Pick the edition you have.",
+  "kindle": "Review the Kindle edition",
+  "paper": "Review the paperback",
+  "mark": "I left a review",
+  "thanks": "Thank you. Your review helps more than you know.",
+  "marked": "You marked this done. Thank you. You can update your review or leave one for the other edition anytime."
+ }
 }
