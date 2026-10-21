@@ -1258,6 +1258,14 @@ async function viewShare() {
   const caption = () => [capLine(), '', U.byline || 'Faith in Motion by Herman Davis', U.getBook || 'Get the book and the free app: https://faithinmotionbook.com', tag].join('\n');
   const copyCap = () => { try { return navigator.clipboard.writeText(caption()).then(() => true, () => false); } catch { return Promise.resolve(false); } };
   const copyBtn = () => h('button', { class: 'btn btn-secondary copy-caption', type: 'button', onclick: async (e) => { const b = e.currentTarget; b.textContent = (await copyCap()) ? U.captionCopied || 'Caption copied.' : U.step1Fail || 'Copy not available here'; } }, U.copyCaption || 'Copy caption');
+  // Download picture: share sheet with the file (Save Image on iPhone) where supported; else a download link; iOS without file share opens the picture to long-press.
+  const dlNote = h('p', { class: 'help dl-note', role: 'status', 'aria-live': 'polite' });
+  const dlBtn = h('button', { class: 'btn btn-secondary download-pic', type: 'button', onclick: async () => {
+    if (!current?.file) return; const f = current.file;
+    if (navigator.canShare?.({ files: [f] })) { try { await navigator.share({ files: [f] }); dlNote.textContent = U.picSaved || 'Picture ready. Tap Save Image, or add it to your post.'; return; } catch (e) { if (e.name === 'AbortError') return; } }
+    if (isIOS()) { const u = URL.createObjectURL(f); window.open(u, '_blank', 'noopener'); dlNote.textContent = U.picHold || 'Long-press the picture to save it.'; return; }
+    share.save(f); dlNote.textContent = U.picDownloaded || 'Picture downloaded.';
+  } }, U.downloadPic || 'Download picture');
   const xHref = () => `https://x.com/intent/post?text=${encodeURIComponent(`${capLine()} ${tag}`)}&url=${encodeURIComponent(SITE)}`;
   const fbHref = () => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SITE)}`;
   const xBtn = h('a', { class: 'btn btn-secondary social-btn post-x', target: '_blank', rel: 'noopener noreferrer', href: '#' }, icon('xlogo'), h('span', { text: N.postX }));
@@ -1283,7 +1291,7 @@ async function viewShare() {
           h('div', { class: 'btn-row' }, copyBtn(), link('/app/sendoff?share=1', N.continue, { class: 'btn btn-primary' }))));
         afterShare.scrollIntoView({ block: 'nearest', behavior: reducedMotion() ? 'auto' : 'smooth' });
       } else if (r !== 'cancelled') { if (await copied) toast(N.captionCopied); go('/app/sendoff?share=1'); }
-    } }, icon('share'), h('span', { text: U.share || 'Share' }))), afterShare, h('p', {}, copyBtn()), socialRow, h('p', { class: 'help', text: U.linkOnly })))));
+    } }, icon('share'), h('span', { text: U.share || 'Share' }))), afterShare, h('p', { class: 'help save-then-paste', text: U.saveThenPaste || 'Save the picture, then paste the caption and add the picture to your post.' }), h('div', { class: 'btn-row' }, dlBtn, copyBtn()), dlNote, socialRow, h('p', { class: 'help', text: U.linkOnly })))));
   await draw();
 }
 
