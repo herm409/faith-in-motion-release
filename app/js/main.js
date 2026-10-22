@@ -1268,7 +1268,8 @@ async function viewShare() {
   } }, U.downloadPic || 'Download picture');
   const xHref = () => `https://x.com/intent/post?text=${encodeURIComponent(`${capLine()} ${tag}`)}&url=${encodeURIComponent(SITE)}`;
   const fbHref = () => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SITE)}`;
-  const xBtn = h('a', { class: 'btn btn-secondary social-btn post-x', target: '_blank', rel: 'noopener noreferrer', href: '#' }, icon('xlogo'), h('span', { text: N.postX }));
+  // X: share sheet with picture + caption (pick the X app); falls back to the web intent (text + link only).
+  const xBtn = h('a', { class: 'btn btn-secondary social-btn post-x', target: '_blank', rel: 'noopener noreferrer', href: '#', onclick: async (e) => { const f = current?.file; if (!f || !navigator.canShare?.({ files: [f] })) return; e.preventDefault(); copyCap(); try { await navigator.share({ files: [f], text: caption() }); } catch (err) { if (err.name !== 'AbortError') window.open(xHref(), '_blank', 'noopener'); } } }, icon('xlogo'), h('span', { text: N.postX }));
   const fbBtn = h('a', { class: 'btn btn-secondary social-btn share-fb', target: '_blank', rel: 'noopener noreferrer', href: '#' }, icon('fblogo'), h('span', { text: N.shareFb }));
   const socialRow = h('div', { class: 'btn-row social-row' }, xBtn, fbBtn);
   const setSocial = () => { xBtn.href = xHref(); fbBtn.href = fbHref(); };
