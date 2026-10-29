@@ -29,7 +29,8 @@ function checkStrings(file, obj) {
   walkStrings(file, obj, '', (s, kp) => {
     if (DASH.test(s)) fail(file, kp, `contains a dash U+${s.match(DASH)[0].codePointAt(0).toString(16).toUpperCase()}`);
     if (HTML.test(s)) fail(file, kp, 'contains HTML ("<" followed by a letter)');
-    for (const re of MD) if (re.test(s)) fail(file, kp, `contains Markdown (${re})`);
+    // Hashtags (ui.tags, e.g. "#FaithInMotionBook #FaithInMotion") are copy, not Markdown headings.
+    if (!/tags$/i.test(kp)) for (const re of MD) if (re.test(s)) fail(file, kp, `contains Markdown (${re})`);
   });
 }
 function readJSON(rel) {
@@ -93,7 +94,8 @@ if (share) {
   checkStrings('share-cards.json', share);
   const cards = Array.isArray(share) ? share : share.cards;
   if (!Array.isArray(cards)) fail('share-cards.json', 'cards', 'required array missing');
-  else { if (cards.length !== 12) warns.push(`share-cards.json: expected 12 cards, found ${cards.length}`); cards.forEach((c, i) => need('share-cards.json', c, ['stopId', 'quote', 'attribution'], `cards[${i}]`)); }
+  // The card count is content, not a build rule: it grew from 12 to 25 on 2026-10-28. Assert shape, not a fixed number.
+  else { if (cards.length < 12) warns.push(`share-cards.json: expected at least 12 cards, found ${cards.length}`); cards.forEach((c, i) => { need('share-cards.json', c, ['stopId', 'quote', 'attribution'], `cards[${i}]`); if (!stops.some((s) => s.id === c.stopId)) fail('share-cards.json', `cards[${i}].stopId`, `unknown stop ${c.stopId}`); }); const seen = new Set(); cards.forEach((c, i) => { const k = c.quote.trim().toLowerCase(); if (seen.has(k)) fail('share-cards.json', `cards[${i}].quote`, 'duplicate quote'); seen.add(k); }); }
   outFiles.set('share-cards.json', share);
   walkStrings('', share, '', (s) => { allWords += words(s); });
 }

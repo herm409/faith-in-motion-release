@@ -324,6 +324,10 @@ input:focus-visible, textarea:focus-visible { outline: 2px solid var(--amber); o
 /* Post on X / Share on Facebook (approved by Herman 2026-10-17 8:44 PM CT) */
 .social-row { margin-top: 10px; }
 .caption-box { white-space: pre-line; overflow-wrap: anywhere; font-size: 15px; background: rgba(255,255,255,.55); border: 1px solid var(--hair); border-radius: var(--r-ctl); padding: 12px 14px; margin: 6px 0 0; user-select: text; -webkit-user-select: text; }
+/* Quote picker: with 67 book quotes, a chapter + quote list replaces tapping "Another quote" through the whole set. */
+.picker { display: block; width: 100%; min-height: 44px; margin: 10px 0 2px; padding: 10px 12px; border-radius: var(--r-ctl); border: 1px solid var(--navy); background: rgba(255,255,255,.72); color: var(--navy); font-family: var(--f-ui); font-size: 16px; }
+.picker[hidden] { display: none; }
+.picker:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 .share-how { margin-top: 14px; }
 .how-list { margin: 8px 0; padding-left: 22px; font-size: 17px; }
 .how-list li { margin: 4px 0; }

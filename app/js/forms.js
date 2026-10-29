@@ -2,9 +2,6 @@
 import * as db from './db.js';
 const MAX_TRIES = 5;
 let flushing = false;
-const listeners = new Set();
-export function onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); }
-const emit = () => listeners.forEach((fn) => fn());
 
 async function post(fields) {
   const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 10000);
@@ -27,7 +24,6 @@ export async function submit(form, fields) {
 async function queue(form, fields, lastError) {
   const id = `${form}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
   await db.put('outbox', { id, form, fields, createdAt: new Date().toISOString(), tries: 1, lastError });
-  emit();
 }
 export async function pending() { return db.all('outbox'); }
 export async function flush(force = false) {
@@ -39,7 +35,7 @@ export async function flush(force = false) {
       try { await post(item.fields); await db.del('outbox', item.id); }
       catch (e) { item.tries += 1; item.lastError = String(e.message || e); await db.put('outbox', item); }
     }
-  } finally { flushing = false; emit(); }
+  } finally { flushing = false; }
 }
 export function startRetries() {
   addEventListener('online', () => flush());

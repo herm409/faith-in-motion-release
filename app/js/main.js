@@ -1205,6 +1205,10 @@ async function viewShare() {
   const canvasBox = h('div'); const draftNote = h('div'); const capBox = h('p', { class: 'caption-box' }); const howEl = h('p', { class: 'help share-how' });
   const pubWrap = h('div', { class: 'field' }, h('label', { for: 'pub' }, 'A public line ', h('span', {}, '(optional, 80 characters)')), publicLine, h('p', { class: 'help', text: 'Only what you type here goes on the card. Your journal never does.' }));
   const another = h('button', { class: 'textlink', type: 'button', onclick: () => { if (kind === 'verse') verseIdx++; else quoteIdx++; draw(); } });
+  // A list of every quote, so no one taps "Another quote" 25 times.
+  const bookOrder = cards.map((cd, i) => [C.stopById(c, cd.stopId).order, i]).sort((a, b) => a[0] - b[0]);
+  const qPick = h('select', { id: 'qq', class: 'picker', 'aria-label': 'Book quote' }, bookOrder.map(([o, i]) => h('option', { value: i, text: cards[i].quote })));
+  qPick.onchange = () => { quoteIdx = +qPick.value; draw(); };
   const anotherQuote = h('p', {}, another);
   // PRIVACY: card text comes only from content files, the stop title, and the optional public line typed above.
   const cardData = () => {
@@ -1222,6 +1226,9 @@ async function viewShare() {
   async function draw() {
     draftNote.replaceChildren(['line', 'route', 'onward'].includes(kind) ? draftNew('New card') || '' : kind !== 'walk' ? '' : draftPill('Walk with me invite') || (!c.config.inviteCopyApproved && C.isPreviewHost() ? h('span', { class: 'draft-note', text: T().draftCopy }) : ''));
     pubWrap.hidden = kind !== 'step'; anotherQuote.hidden = kind !== 'quote' && kind !== 'verse'; walkExtras.hidden = kind !== 'walk';
+    qPick.hidden = kind !== 'quote';
+    // Only follow the quote's chapter until the reader picks a chapter themselves; otherwise "All chapters" would snap back.
+    if (kind === 'quote') qPick.value = quoteIdx % cards.length;
     another.textContent = kind === 'verse' ? U.anotherVerse || 'Another verse' : 'Another quote';
     afterShare.replaceChildren(); capBox.textContent = caption(); setSocial();
     const data = { ...cardData(), coverSrc: '/app/img/cover-480.webp' }; const n = ++drawN;
@@ -1277,7 +1284,7 @@ async function viewShare() {
     h('h1', { class: 'h1', text: 'Share a card' }),
     h('p', { class: 'legend', text: 'Card' }), chipRow(kinds, () => kind, (v) => { kind = v; }, 'Card'),
     h('p', { class: 'legend', text: 'Size' }), chipRow(Object.entries(share.SIZE_LABELS), () => size, (v) => { size = v; }, 'Size'),
-    pubWrap, draftNote, anotherQuote, canvasBox, walkExtras, linkStatus,
+    pubWrap, draftNote, qPick, anotherQuote, canvasBox, walkExtras, linkStatus,
     h('p', { class: 'legend', text: U.captionLabel || 'Your caption' }), capBox,
     howEl,
     h('div', { class: 'btn-row' }, h('button', { class: 'btn btn-primary share-go', type: 'button', onclick: async () => {
